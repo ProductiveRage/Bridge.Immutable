@@ -128,7 +128,7 @@ I can't take too much credit for this part of the code since I started from the 
 
 ## Sets
 
-Finally, there is also a simple list-like type in the library; **Set&lt;T&gt;". This is an immutable collection of objects (using a linked list internally to allow sharing of data between instances where possible, in order to avoid throwing even more work at the GC than necessary). It *also* will not accept any null values - if a collection may not have values for every element then it should be of type **Set&lt;Optional&lt;T&gt;&gt;**!
+Finally, there is also a simple list-like type in the library; **Set&lt;T&gt;**. This is an immutable collection of objects (using a linked list internally to allow sharing of data between instances where possible, in order to avoid throwing even more work at the GC than necessary). It *also* will not accept any null values - if a collection must support not having values for some of the elements then it should be of type **Set&lt;Optional&lt;T&gt;&gt;**.
 
 It currently only has a minimal interface of:
 
@@ -137,8 +137,11 @@ It currently only has a minimal interface of:
 	uint Count { get; }
 	T this[uint index] { get; }
 	Set<T> SetValue(uint index, T value)
+	Set<T> Insert(T item); // Inserts at the start of the set
 	
-It implements **IEnumerable&lt;T&gt;**, so that it will play nicely with other code. And there's another static helper function "Of" -
+It implements **IEnumerable&lt;T&gt;** so that it will play nicely with other code.
+
+And there's another static helper function "Of" -
 
 	var items = Set.Of("One", "Two", "Three");
 	
@@ -173,9 +176,9 @@ There is a "With" extension method that makes working with sets a little easier.
 
 This is still early days. I might decide in a couple of months that this was an interesting experiment but ultimately not something to continue. Maybe an awesome code-gen option will come to light and I'll prefer that. Maybe other people I work with will be unwilling to accept this sort of code because it looks "weird" with its property identifier lambdas.
 
-Right now, though, I'm excited about how this makes writing immutable classes easier *and* I had fun writing the sort-of reflection code for the JavaScript that Bridge.NET generates (Bridge v2 will have full support for reflection but the release schedule, as of December 2015, is still pending - this library is for 1.x).
+Right now, though, I'm excited about how this makes writing immutable classes easier *and* I had fun writing the sort-of reflection code for the JavaScript that Bridge.NET generates (Bridge v2 will have full support for reflection but the release schedule, as of December 2015, is still pending - this library is for Bridge 1.x).
 
-However, there is one thing that I don't like. If you don't use the expected property identifier format -
+However, there *is* one thing that I don't like. If you don't use the expected property identifier format -
 
 	// This is all good if Id is a property
 	this.CtorSet(_ => _.Id, id);
@@ -183,6 +186,6 @@ However, there is one thing that I don't like. If you don't use the expected pro
 	// This is bad but will, unfortunately, compile
 	this.CtorSet(_ => _.Id + 1, id);
 	
-.. then you'll get a runtime exception. Likewise if the property that is specified does not have both a setter and a getter (a private getter and/or setter is fine but *no* getter/setter is a problem). If the getter or setter use one of Bridge's attributes that change the names of functions in the JavaScript then that too will result in a runtime exception (such as the [Name] or [Template] attributes).
+.. then you'll get a runtime exception. Likewise if the property that is specified does not have both a setter and a getter (a private getter and/or setter is fine but *no* getter/setter is a problem). If the getter or setter use one of Bridge's attributes that change the names of functions in the JavaScript then that too will result in a runtime exception (such as the [[Name]](http://bridge.net/kb/attribute-reference/#Name) or [[Template]](http://bridge.net/kb/attribute-reference/#Template) attributes).
 
-The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception.. and these property identifiers only being validated at runtime is less-than-ideal in my eyes. I have great hope, however, that a  Roslyn-based Analyser will be able to ensure that things are written as expected *and pick up on it at compile-time, before the code is ever executed*. And that is the next step.
+The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception - and these property identifiers only being validated at runtime is less-than-ideal in my eyes. I have great hope, however, that a  Roslyn-based Analyser will be able to ensure that things are written as expected *and pick up on it at compile-time, before the code is ever executed*. And that is my next step.
