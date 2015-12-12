@@ -1,0 +1,25 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>ProductiveRage.Immutable.Analyser</id>
+    <version>1.0.0.0</version>
+    <title>ProductiveRage.Immutable (for Bridge.NET) Analyser</title>
+    <authors>ProductiveRage</authors>
+    <owners>ProductiveRage</owners>
+    <licenseUrl>https://github.com/ProductiveRage/Bridge.Immutable/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/ProductiveRage/Bridge.Immutable</projectUrl>
+    <iconUrl>https://secure.gravatar.com/avatar/6a1f781d4d5e2d50dcff04f8f049767a?s=200</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Analyser</description>
+    <copyright>Copyright 2015 ProductiveRage</copyright>
+    <tags>C# bridge bridge.net analyzers</tags>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <!-- The convention for analyzers is to put language agnostic dlls in analyzers\portable50 and language specific analyzers in either analyzers\portable50\cs or analyzers\portable50\vb -->
+  <files>
+    <file src="*.dll" target="analyzers\dotnet\cs" exclude="**\Microsoft.CodeAnalysis.*;**\System.Collections.Immutable.*;**\System.Reflection.Metadata.*;**\System.Composition.*" />
+    <file src="tools\*.ps1" target="tools\" />
+  </files>
+</package>
