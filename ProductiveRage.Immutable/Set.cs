@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Bridge.Immutable
+namespace ProductiveRage.Immutable
 {
 	public static class Set
 	{

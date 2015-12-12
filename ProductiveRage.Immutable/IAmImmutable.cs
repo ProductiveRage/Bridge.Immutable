@@ -1,4 +1,6 @@
-﻿namespace Bridge.Immutable
+﻿using Bridge;
+
+namespace ProductiveRage.Immutable
 {
 	/// <summary>
 	/// The CtorSet extension method should only be used with types that are intended for its use so it will only operate against classes the implement this interface. The

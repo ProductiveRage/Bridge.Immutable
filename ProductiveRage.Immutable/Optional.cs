@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Bridge.Immutable
+namespace ProductiveRage.Immutable
 {
 	// Borrowed from https://github.com/AArnott/ImmutableObjectGraph - but tweaked slightly: changing the initialisation logic to treat a
 	// null value the same as Missing, since I think this is more logical (I can't see why there should be a way to say that a value is

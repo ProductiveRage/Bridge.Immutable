@@ -7,8 +7,8 @@
     <ProjectGuid>{3DF88A7A-55F2-4864-95A7-902CC26B4010}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Bridge.Immutable</RootNamespace>
-    <AssemblyName>Bridge.Immutable</AssemblyName>
+    <RootNamespace>ProductiveRage.Immutable</RootNamespace>
+    <AssemblyName>ProductiveRage.Immutable</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>

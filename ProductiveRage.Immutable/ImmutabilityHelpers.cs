@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Bridge;
 
-namespace Bridge.Immutable
+namespace ProductiveRage.Immutable
 {
 	public static class ImmutabilityHelpers
 	{
