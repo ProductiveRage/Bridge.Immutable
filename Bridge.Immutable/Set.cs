@@ -7,7 +7,7 @@ namespace Bridge.Immutable
 	public static class Set
 	{
 		/// <summary>
-		/// This will throw an exception for any null references in the values parameters - if if nulls may be required then the type parameter should be an Optional
+		/// This will throw an exception for any null references in the values parameters - if nulls may be required then the type parameter should be an Optional
 		/// </summary>
 		public static Set<T> Of<T>(params T[] values)
 		{
