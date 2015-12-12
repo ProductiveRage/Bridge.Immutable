@@ -1,4 +1,4 @@
-# Bridge.Immutable
+# (Bridge.NET) ProductiveRage.Immutable
 A way to make it easier to create and work with immutable classes in [Bridge.NET](http://bridge.net/) - I want to be able to write immutable classes, such as:
 
 	public class PersonDetails
