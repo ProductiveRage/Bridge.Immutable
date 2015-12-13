@@ -1,5 +1,23 @@
 ﻿using System;
 
+namespace TestCase
+{
+	using ProductiveRage.Immutable;
+
+	public class PersonDetails : IAmImmutable
+	{
+		public PersonDetails(int id, string name)
+		{
+			this.CtorSet(_ => _.Id, id);
+			this.CtorSet(_ => _.ToString(), name);
+		}
+		public int Id { get; private set; }
+		public string Name { get; private set; }
+	}
+}
+
+
+
 namespace ProductiveRage.Immutable
 {
 	// Borrowed from https://github.com/AArnott/ImmutableObjectGraph - but tweaked slightly: changing the initialisation logic to treat a

@@ -92,11 +92,7 @@
       <HintPath>..\..\packages\System.Reflection.Metadata.1.1.0\lib\dotnet5.2\System.Reflection.Metadata.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
       <Private>false</Private>
     </Reference>
@@ -107,7 +103,7 @@
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />
     <Compile Include="Helpers\DiagnosticResult.cs" />
     <Compile Include="Helpers\DiagnosticVerifier.Helper.cs" />
-    <Compile Include="UnitTests.cs" />
+    <Compile Include="CtorSetCallAnalyzerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +111,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ProductiveRage.Immutable.Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj">
+      <Project>{36e740d7-ae4e-429b-9473-0ff15c209f83}</Project>
+      <Name>ProductiveRage.Immutable.Analyser.Test.BridgeMock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild.csproj">
+      <Project>{b38b0113-53ff-4f55-b480-6994eef96a3c}</Project>
+      <Name>ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Analyser\ProductiveRage.Immutable.Analyser.csproj">
       <Project>{20FD3A5D-F162-443E-8328-528CBF56DFAA}</Project>
       <Name>ProductiveRage.Immutable.Analyser</Name>

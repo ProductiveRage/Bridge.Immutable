@@ -117,16 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzerDescription" xml:space="preserve">
-    <value>Type names should be all uppercase.</value>
-    <comment>An optional longer localizable description of the diagnostic.</comment>
+  <data name="AnalyserTitle" xml:space="preserve">
+    <value>CtorSet should only be used in specific circumstances</value>
   </data>
-  <data name="AnalyzerMessageFormat" xml:space="preserve">
-    <value>Type name '{0}' contains lowercase letters</value>
-    <comment>The format-able message the diagnostic displays.</comment>
+  <data name="BridgeAttributeMessageFormat" xml:space="preserve">
+    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
   </data>
-  <data name="AnalyzerTitle" xml:space="preserve">
-    <value>Type name contains lowercase letters</value>
-    <comment>The title of the diagnostic.</comment>
+  <data name="MayOnlyBeCalledWithConstructorMessageFormat" xml:space="preserve">
+    <value>CtorSet should only be called within a constructor</value>
+  </data>
+  <data name="SimpleMemberAccessRuleMessageFormat" xml:space="preserve">
+    <value>CtorSet must be a simple member access expression of the form this.CtorSet(..)</value>
+  </data>
+  <data name="SimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
   </data>
 </root>

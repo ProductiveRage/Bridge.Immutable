@@ -62,29 +62,47 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type names should be all uppercase..
+        ///   Looks up a localized string similar to CtorSet should only be used in specific circumstances.
         /// </summary>
-        internal static string AnalyzerDescription {
+        internal static string AnalyserTitle {
             get {
-                return ResourceManager.GetString("AnalyzerDescription", resourceCulture);
+                return ResourceManager.GetString("AnalyserTitle", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type name &apos;{0}&apos; contains lowercase letters.
+        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter.
         /// </summary>
-        internal static string AnalyzerMessageFormat {
+        internal static string BridgeAttributeMessageFormat {
             get {
-                return ResourceManager.GetString("AnalyzerMessageFormat", resourceCulture);
+                return ResourceManager.GetString("BridgeAttributeMessageFormat", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type name contains lowercase letters.
+        ///   Looks up a localized string similar to CtorSet should only be called within a constructor.
         /// </summary>
-        internal static string AnalyzerTitle {
+        internal static string MayOnlyBeCalledWithConstructorMessageFormat {
             get {
-                return ResourceManager.GetString("AnalyzerTitle", resourceCulture);
+                return ResourceManager.GetString("MayOnlyBeCalledWithConstructorMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CtorSet must be a simple member access expression of the form this.CtorSet(..).
+        /// </summary>
+        internal static string SimpleMemberAccessRuleMessageFormat {
+            get {
+                return ResourceManager.GetString("SimpleMemberAccessRuleMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        /// </summary>
+        internal static string SimplePropertyAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("SimplePropertyAccessorArgumentMessageFormat", resourceCulture);
             }
         }
     }

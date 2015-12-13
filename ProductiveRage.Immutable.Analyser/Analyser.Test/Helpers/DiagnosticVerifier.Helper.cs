@@ -1,11 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+using ProductiveRage.Immutable;
 
 namespace TestHelper
 {
@@ -15,10 +16,16 @@ namespace TestHelper
 	/// </summary>
 	public abstract partial class DiagnosticVerifier
 	{
+		// We need to access assemblies for the ProductiveRage.Immutable and Bridge so that they can be added to the solution of code that each unit test needs to build up. Note, though,
+		// that these are not the REAL projects because we can't reference them here - no single project can reference "real" C# binaries AND Bridge binaries (because System and Bridge have
+		// different implementations of the same thing). Instead, the projects referenced here are a ProductiveRage.Immutable-built-as-a-standard-C#-library-instead-of-a-Bridge-library and
+		// a sort of "Mock Bridge" that allow that alternate-ProductiveRage.Immutable to compile without having a reference to the real Bridge library.
 		private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 		private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
 		private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
-		private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(Compilation).Assembly.Location);
+		private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromFile(typeof(ProductiveRage.Immutable.ImmutabilityHelpers).Assembly.Location);
+		private static readonly MetadataReference CSharpProductiveRageImmutableReference = MetadataReference.CreateFromFile(typeof(ImmutabilityHelpers).Assembly.Location);
+		private static readonly MetadataReference MockBridgeReference = MetadataReference.CreateFromFile(typeof(Bridge.Script).Assembly.Location);
 
 		internal static string DefaultFilePathPrefix = "Test";
 		internal static string CSharpDefaultFileExt = "cs";
@@ -152,7 +159,9 @@ namespace TestHelper
 				.AddMetadataReference(projectId, CorlibReference)
 				.AddMetadataReference(projectId, SystemCoreReference)
 				.AddMetadataReference(projectId, CSharpSymbolsReference)
-				.AddMetadataReference(projectId, CodeAnalysisReference);
+				.AddMetadataReference(projectId, CodeAnalysisReference)
+				.AddMetadataReference(projectId, CSharpProductiveRageImmutableReference)
+				.AddMetadataReference(projectId, MockBridgeReference);
 
 			int count = 0;
 			foreach (var source in sources)
