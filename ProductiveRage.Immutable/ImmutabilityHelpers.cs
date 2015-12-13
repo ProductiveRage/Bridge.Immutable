@@ -46,7 +46,7 @@ namespace ProductiveRage.Immutable
 		/// and the source reference will be passed straight back out. The new property value may not be null - if the property must be nullable then it should have a type
 		/// wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
-		public static T With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, TPropertyValue value)
+		public static T With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, TPropertyValue value) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
@@ -77,7 +77,7 @@ namespace ProductiveRage.Immutable
 		/// straight back out. The new property value may not be null - if the property must be nullable then it should have a type wrapped in an Optional struct, which will
 		/// ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
-		public static T With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index, TPropertyElement value)
+		public static T With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index, TPropertyElement value) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
@@ -97,7 +97,7 @@ namespace ProductiveRage.Immutable
 		/// use a Bridge [Name] attribute. The returned lambda will throw an exception if called with a null value - if the property must be nullable then it should
 		/// have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
-		public static Func<TPropertyValue, T> With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier)
+		public static Func<TPropertyValue, T> With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
@@ -132,7 +132,7 @@ namespace ProductiveRage.Immutable
 		/// with a null value - if the property must be nullable then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not
 		/// be null (though it may represent a "missing" value).
 		/// </summary>
-		public static Func<TPropertyElement, T> With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index)
+		public static Func<TPropertyElement, T> With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
