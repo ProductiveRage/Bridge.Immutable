@@ -11,10 +11,6 @@ namespace Bridge
 	{
 		public PriorityAttribute(int priority) { }
 	}
-	public class TemplateAttribute : Attribute
-	{
-		public TemplateAttribute(string template) { }
-	}
 
 	public static class Script
 	{
