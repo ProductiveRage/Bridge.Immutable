@@ -21,7 +21,7 @@ namespace ProductiveRage.Immutable.Analyser
 			GetLocalizableString(nameof(Resources.AnalyserTitle)),
 			GetLocalizableString(nameof(Resources.SimpleMemberAccessRuleMessageFormat)),
 			Category,
-			DiagnosticSeverity.Warning,
+			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor ConstructorRule = new DiagnosticDescriptor(
@@ -29,7 +29,7 @@ namespace ProductiveRage.Immutable.Analyser
 			GetLocalizableString(nameof(Resources.AnalyserTitle)),
 			GetLocalizableString(nameof(Resources.MayOnlyBeCalledWithConstructorMessageFormat)),
 			Category,
-			DiagnosticSeverity.Warning,
+			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor SimplePropertyAccessorArgumentAccessRule = new DiagnosticDescriptor(
@@ -37,7 +37,7 @@ namespace ProductiveRage.Immutable.Analyser
 			GetLocalizableString(nameof(Resources.AnalyserTitle)),
 			GetLocalizableString(nameof(Resources.SimplePropertyAccessorArgumentMessageFormat)),
 			Category,
-			DiagnosticSeverity.Warning,
+			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor BridgeAttributeAccessRule = new DiagnosticDescriptor(
@@ -45,7 +45,7 @@ namespace ProductiveRage.Immutable.Analyser
 			GetLocalizableString(nameof(Resources.AnalyserTitle)),
 			GetLocalizableString(nameof(Resources.BridgeAttributeMessageFormat)),
 			Category,
-			DiagnosticSeverity.Warning,
+			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 
@@ -174,7 +174,7 @@ namespace ProductiveRage.Immutable.Analyser
 			{
 				context.ReportDiagnostic(Diagnostic.Create(
 					BridgeAttributeAccessRule,
-					property.GetMethod.Locations.First()
+					context.Node.GetLocation()
 				));
 				return;
 			}
@@ -191,7 +191,7 @@ namespace ProductiveRage.Immutable.Analyser
 			{
 				context.ReportDiagnostic(Diagnostic.Create(
 					BridgeAttributeAccessRule,
-					property.SetMethod.Locations.First()
+					context.Node.GetLocation()
 				));
 				return;
 			}
