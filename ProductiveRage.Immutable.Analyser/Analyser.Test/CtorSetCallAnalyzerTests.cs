@@ -70,7 +70,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.SimpleMemberAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 10, 8)
@@ -108,7 +108,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.ConstructorRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 17, 8)
@@ -142,7 +142,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 10, 8)
@@ -176,7 +176,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 11, 8)
@@ -210,7 +210,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 10, 8)
@@ -244,7 +244,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 11, 8)
@@ -279,10 +279,10 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 14, 46)
+					new DiagnosticResultLocation("Test0.cs", 11, 8)
 				}
 			};
 
@@ -314,10 +314,10 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
 				Message = CtorSetCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Warning,
+				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 14, 59)
+					new DiagnosticResultLocation("Test0.cs", 11, 8)
 				}
 			};
 
