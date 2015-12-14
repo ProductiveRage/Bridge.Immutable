@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.An
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.Analyser.Test", "ProductiveRage.Immutable.Analyser\Analyser.Test\ProductiveRage.Immutable.Analyser.Test.csproj", "{45CC65DA-B3E3-4FCA-9EF3-9FAD3501C8AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild", "ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild.csproj", "{B38B0113-53FF-4F55-B480-6994EEF96A3C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild", "ProductiveRage.Immutable.Analyser\Analyser.Test.NonBridgeBuild\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild.csproj", "{B38B0113-53FF-4F55-B480-6994EEF96A3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.Analyser.Test.BridgeMock", "ProductiveRage.Immutable.Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj", "{36E740D7-AE4E-429B-9473-0FF15C209F83}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductiveRage.Immutable.Analyser.Test.BridgeMock", "ProductiveRage.Immutable.Analyser\Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj", "{36E740D7-AE4E-429B-9473-0FF15C209F83}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyser", "Analyser", "{E3A2C158-CEDD-4F7B-8830-B68A634FDCE0}"
 EndProject

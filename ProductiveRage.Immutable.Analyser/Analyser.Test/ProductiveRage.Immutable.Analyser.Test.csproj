@@ -111,11 +111,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ProductiveRage.Immutable.Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj">
+    <ProjectReference Include="..\Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj">
       <Project>{36e740d7-ae4e-429b-9473-0ff15c209f83}</Project>
       <Name>ProductiveRage.Immutable.Analyser.Test.BridgeMock</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild.csproj">
+    <ProjectReference Include="..\Analyser.Test.NonBridgeBuild\ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild.csproj">
       <Project>{b38b0113-53ff-4f55-b480-6994eef96a3c}</Project>
       <Name>ProductiveRage.Immutable.Analyser.Test.NonBridgeBuild</Name>
     </ProjectReference>

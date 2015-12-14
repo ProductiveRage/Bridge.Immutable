@@ -34,19 +34,19 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\ProductiveRage.Immutable\IAmImmutable.cs">
+    <Compile Include="..\..\ProductiveRage.Immutable\IAmImmutable.cs">
       <Link>IAmImmutable.cs</Link>
     </Compile>
-    <Compile Include="..\ProductiveRage.Immutable\ImmutabilityHelpers.cs">
+    <Compile Include="..\..\ProductiveRage.Immutable\ImmutabilityHelpers.cs">
       <Link>ImmutabilityHelpers.cs</Link>
     </Compile>
-    <Compile Include="..\ProductiveRage.Immutable\Set.cs">
+    <Compile Include="..\..\ProductiveRage.Immutable\Set.cs">
       <Link>Set.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProductiveRage.Immutable.Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj">
+    <ProjectReference Include="..\Analyser.Test.BridgeMock\ProductiveRage.Immutable.Analyser.Test.BridgeMock.csproj">
       <Project>{36e740d7-ae4e-429b-9473-0ff15c209f83}</Project>
       <Name>ProductiveRage.Immutable.Analyser.Test.BridgeMock</Name>
     </ProjectReference>
