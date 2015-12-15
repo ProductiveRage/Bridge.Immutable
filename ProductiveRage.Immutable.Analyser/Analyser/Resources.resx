@@ -127,7 +127,7 @@
     <value>CtorSet should only be called within a constructor</value>
   </data>
   <data name="SimpleMemberAccessRuleMessageFormat" xml:space="preserve">
-    <value>CtorSet must be a simple member access expression of the form this.CtorSet(..)</value>
+    <value>CtorSet must be a simple member access expression that targets "this" - it must be of the form this.CtorSet(..)</value>
   </data>
   <data name="SimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>

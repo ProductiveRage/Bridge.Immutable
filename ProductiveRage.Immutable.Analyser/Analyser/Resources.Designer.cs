@@ -89,7 +89,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CtorSet must be a simple member access expression of the form this.CtorSet(..).
+        ///   Looks up a localized string similar to CtorSet must be a simple member access expression that targets &quot;this&quot; - it must be of the form this.CtorSet(..).
         /// </summary>
         internal static string SimpleMemberAccessRuleMessageFormat {
             get {
