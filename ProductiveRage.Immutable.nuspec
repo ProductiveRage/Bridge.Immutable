@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/ProductiveRage/Bridge.Immutable</projectUrl>
     <iconUrl>https://secure.gravatar.com/avatar/6a1f781d4d5e2d50dcff04f8f049767a?s=200</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Analyser</description>
+    <description>A way to make it easier to create and work with immutable classes in Bridge.NET</description>
     <copyright>Copyright 2015 ProductiveRage</copyright>
     <tags>C# bridge bridge.net bridge.immutable immutable analyzers</tags>
   </metadata>
