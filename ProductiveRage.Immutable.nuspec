@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>ProductiveRage.Immutable</id>
-    <version>1.0.0.0</version>
+    <version>1.0.1.0</version>
     <title>ProductiveRage.Immutable (for Bridge.NET)</title>
     <authors>ProductiveRage</authors>
     <owners>ProductiveRage</owners>
@@ -13,13 +13,10 @@
     <description>Analyser</description>
     <copyright>Copyright 2015 ProductiveRage</copyright>
     <tags>C# bridge bridge.net bridge.immutable immutable analyzers</tags>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System" targetFramework="" />
-    </frameworkAssemblies>
   </metadata>
   <files>
     <file src="ProductiveRage.Immutable.dll" target="lib\net40" />
-    <file src="*.dll" target="analyzers\dotnet\cs" exclude="**\Microsoft.CodeAnalysis.*;**\System.Collections.Immutable.*;**\System.Reflection.Metadata.*;**\System.Composition.*;**\Bridge.dll" />
+    <file src="ProductiveRage.Immutable.Analyser.dll" target="analyzers\dotnet\cs" />
     <file src="*.ps1" target="tools\" />
   </files>
 </package>
