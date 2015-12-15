@@ -117,19 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyserTitle" xml:space="preserve">
+  <data name="CtorAnalyserTitle" xml:space="preserve">
     <value>CtorSet should only be used in specific circumstances</value>
   </data>
-  <data name="BridgeAttributeMessageFormat" xml:space="preserve">
+  <data name="CtorBridgeAttributeMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
   </data>
-  <data name="MayOnlyBeCalledWithConstructorMessageFormat" xml:space="preserve">
+  <data name="CtorMayOnlyBeCalledWithConstructorMessageFormat" xml:space="preserve">
     <value>CtorSet should only be called within a constructor</value>
   </data>
-  <data name="SimpleMemberAccessRuleMessageFormat" xml:space="preserve">
+  <data name="CtorSimpleMemberAccessRuleMessageFormat" xml:space="preserve">
     <value>CtorSet must be a simple member access expression that targets "this" - it must be of the form this.CtorSet(..)</value>
   </data>
-  <data name="SimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
+  <data name="CtorSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
   </data>
 </root>

@@ -66,7 +66,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// </summary>
         internal static string CtorAnalyserTitle {
             get {
-                return ResourceManager.GetString("AnalyserTitle", resourceCulture);
+                return ResourceManager.GetString("CtorAnalyserTitle", resourceCulture);
             }
         }
         
@@ -75,7 +75,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// </summary>
         internal static string CtorBridgeAttributeMessageFormat {
             get {
-                return ResourceManager.GetString("BridgeAttributeMessageFormat", resourceCulture);
+                return ResourceManager.GetString("CtorBridgeAttributeMessageFormat", resourceCulture);
             }
         }
         
@@ -84,7 +84,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// </summary>
         internal static string CtorMayOnlyBeCalledWithConstructorMessageFormat {
             get {
-                return ResourceManager.GetString("MayOnlyBeCalledWithConstructorMessageFormat", resourceCulture);
+                return ResourceManager.GetString("CtorMayOnlyBeCalledWithConstructorMessageFormat", resourceCulture);
             }
         }
         
@@ -93,7 +93,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// </summary>
         internal static string CtorSimpleMemberAccessRuleMessageFormat {
             get {
-                return ResourceManager.GetString("SimpleMemberAccessRuleMessageFormat", resourceCulture);
+                return ResourceManager.GetString("CtorSimpleMemberAccessRuleMessageFormat", resourceCulture);
             }
         }
         
@@ -102,7 +102,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// </summary>
         internal static string CtorSimplePropertyAccessorArgumentMessageFormat {
             get {
-                return ResourceManager.GetString("SimplePropertyAccessorArgumentMessageFormat", resourceCulture);
+                return ResourceManager.GetString("CtorSimplePropertyAccessorArgumentMessageFormat", resourceCulture);
             }
         }
     }
