@@ -11,7 +11,7 @@ del *.ps1
 
 copy ..\ProductiveRage.Immutable\bin\Release\ProductiveRage.Immutable.dll > nul
 
-copy ..\ProductiveRage.Immutable.Analyser\Analyser\bin\Release\* > nul
+copy ..\ProductiveRage.Immutable.Analyser\Analyser\bin\Release\*.dll > nul
 copy ..\ProductiveRage.Immutable.Analyser\Analyser\bin\Release\tools\* > nul
 
 copy ..\ProductiveRage.Immutable.nuspec > nul
