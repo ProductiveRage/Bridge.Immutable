@@ -64,7 +64,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to CtorSet should only be used in specific circumstances.
         /// </summary>
-        internal static string AnalyserTitle {
+        internal static string CtorAnalyserTitle {
             get {
                 return ResourceManager.GetString("AnalyserTitle", resourceCulture);
             }
@@ -73,7 +73,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter.
         /// </summary>
-        internal static string BridgeAttributeMessageFormat {
+        internal static string CtorBridgeAttributeMessageFormat {
             get {
                 return ResourceManager.GetString("BridgeAttributeMessageFormat", resourceCulture);
             }
@@ -82,7 +82,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to CtorSet should only be called within a constructor.
         /// </summary>
-        internal static string MayOnlyBeCalledWithConstructorMessageFormat {
+        internal static string CtorMayOnlyBeCalledWithConstructorMessageFormat {
             get {
                 return ResourceManager.GetString("MayOnlyBeCalledWithConstructorMessageFormat", resourceCulture);
             }
@@ -91,7 +91,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to CtorSet must be a simple member access expression that targets &quot;this&quot; - it must be of the form this.CtorSet(..).
         /// </summary>
-        internal static string SimpleMemberAccessRuleMessageFormat {
+        internal static string CtorSimpleMemberAccessRuleMessageFormat {
             get {
                 return ResourceManager.GetString("SimpleMemberAccessRuleMessageFormat", resourceCulture);
             }
@@ -100,7 +100,7 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
         /// </summary>
-        internal static string SimplePropertyAccessorArgumentMessageFormat {
+        internal static string CtorSimplePropertyAccessorArgumentMessageFormat {
             get {
                 return ResourceManager.GetString("SimplePropertyAccessorArgumentMessageFormat", resourceCulture);
             }

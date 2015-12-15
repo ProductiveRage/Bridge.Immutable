@@ -14,36 +14,36 @@ namespace ProductiveRage.Immutable.Analyser
 		private const string BridgeAssemblyName = "Bridge";
 		private const string CtorSetAssemblyName = "ProductiveRage.Immutable";
 
-		public const string DiagnosticId = "CtorSetSingle";
+		public const string DiagnosticId = "CtorSet";
 		public const string Category = "Design";
 		public static DiagnosticDescriptor SimpleMemberAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			GetLocalizableString(nameof(Resources.AnalyserTitle)),
-			GetLocalizableString(nameof(Resources.SimpleMemberAccessRuleMessageFormat)),
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.CtorSimpleMemberAccessRuleMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor ConstructorRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			GetLocalizableString(nameof(Resources.AnalyserTitle)),
-			GetLocalizableString(nameof(Resources.MayOnlyBeCalledWithConstructorMessageFormat)),
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.CtorMayOnlyBeCalledWithConstructorMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor SimplePropertyAccessorArgumentAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			GetLocalizableString(nameof(Resources.AnalyserTitle)),
-			GetLocalizableString(nameof(Resources.SimplePropertyAccessorArgumentMessageFormat)),
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.CtorSimplePropertyAccessorArgumentMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor BridgeAttributeAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			GetLocalizableString(nameof(Resources.AnalyserTitle)),
-			GetLocalizableString(nameof(Resources.BridgeAttributeMessageFormat)),
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.CtorBridgeAttributeMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
