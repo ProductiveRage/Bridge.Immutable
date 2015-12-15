@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>ProductiveRage.Immutable</id>
-    <version>1.0.1.0</version>
+    <version>1.1.0.0</version>
     <title>ProductiveRage.Immutable (for Bridge.NET)</title>
     <authors>ProductiveRage</authors>
     <owners>ProductiveRage</owners>
@@ -13,6 +13,9 @@
     <description>A way to make it easier to create and work with immutable classes in Bridge.NET</description>
     <copyright>Copyright 2015 ProductiveRage</copyright>
     <tags>C# bridge bridge.net bridge.immutable immutable analyzers</tags>
+    <dependencies>
+      <dependency id="Bridge" version="1.10.2" />
+    </dependencies>
   </metadata>
   <files>
     <file src="ProductiveRage.Immutable.dll" target="lib\net40" />
