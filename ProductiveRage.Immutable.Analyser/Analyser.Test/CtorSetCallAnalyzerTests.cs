@@ -19,7 +19,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		public void IdealUsage()
 		{
 			var testContent = @"
-				using System;
+				using ProductiveRage.Immutable;
 
 				namespace TestCase
 				{
