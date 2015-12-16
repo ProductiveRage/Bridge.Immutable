@@ -132,4 +132,13 @@
   <data name="CtorSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
   </data>
+  <data name="WithAnalyserTitle" xml:space="preserve">
+    <value>With should only be used in a particular manner</value>
+  </data>
+  <data name="WithBridgeAttributeMessageFormat" xml:space="preserve">
+    <value>With's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
+  </data>
+  <data name="WithSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>With's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+  </data>
 </root>

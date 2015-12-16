@@ -105,5 +105,32 @@ namespace ProductiveRage.Immutable.Analyser {
                 return ResourceManager.GetString("CtorSimplePropertyAccessorArgumentMessageFormat", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to With should only be used in a particular manner.
+        /// </summary>
+        internal static string WithAnalyserTitle {
+            get {
+                return ResourceManager.GetString("WithAnalyserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to With&apos;s propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter.
+        /// </summary>
+        internal static string WithBridgeAttributeMessageFormat {
+            get {
+                return ResourceManager.GetString("WithBridgeAttributeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to With&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        /// </summary>
+        internal static string WithSimplePropertyAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("WithSimplePropertyAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
     }
 }
