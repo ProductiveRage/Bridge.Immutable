@@ -121,7 +121,7 @@ namespace ProductiveRage.Immutable.Analyser
 			if (propertyRetrieverArgument == null)
 			{
 				// If there are no arguments then there should be a compile error and we shouldn't have got here - but better to pretend that
-				// all is well until we DO get valid content, rather cause an NRE below
+				// all is well until we DO get valid content, rather than cause an NRE below
 				return;
 			}
 
