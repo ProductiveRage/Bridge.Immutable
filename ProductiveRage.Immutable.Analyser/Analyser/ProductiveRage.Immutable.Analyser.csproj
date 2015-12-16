@@ -35,7 +35,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ImmutabilityHelperAnalyzer.cs" />
+    <Compile Include="CommonAnalyser.cs" />
     <Compile Include="WithCallAnalyzer.cs" />
     <Compile Include="NullCodeFixProvider.cs" />
     <Compile Include="CtorSetCallAnalyzer.cs" />

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ProductiveRage.Immutable.Analyser
 {
 	[DiagnosticAnalyzer(LanguageNames.CSharp)]
-	public class WithCallAnalyzer : ImmutabilityHelperAnalyzer
+	public class WithCallAnalyzer : DiagnosticAnalyzer
 	{
 		public const string DiagnosticId = "With";
 		public const string Category = "Design";
@@ -58,7 +58,7 @@ namespace ProductiveRage.Immutable.Analyser
 			var withMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
 			if ((withMethod == null)
 			|| (withMethod.ContainingAssembly == null)
-			|| (withMethod.ContainingAssembly.Name != AnalyserAssemblyName))
+			|| (withMethod.ContainingAssembly.Name != CommonAnalyser.AnalyserAssemblyName))
 				return;
 
 			// The GetSymbolInfo call above does some magic so that when the With method is called as extension then it its parameters list
@@ -85,29 +85,29 @@ namespace ProductiveRage.Immutable.Analyser
 
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
 			var propertyRetrieverArgument = invocation.ArgumentList.Arguments[indexOfPropertyIdentifierArgument];
-			switch (base.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
 			{
-				case PropertyValidationResult.Ok:
+				case CommonAnalyser.PropertyValidationResult.Ok:
 					return;
 
-				case PropertyValidationResult.NotSimpleLambdaExpression:
-				case PropertyValidationResult.LambdaDoesNotTargetProperty:
+				case CommonAnalyser.PropertyValidationResult.NotSimpleLambdaExpression:
+				case CommonAnalyser.PropertyValidationResult.LambdaDoesNotTargetProperty:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
 						context.Node.GetLocation()
 					));
 					return;
 
-				case PropertyValidationResult.MissingGetter:
-				case PropertyValidationResult.MissingSetter:
+				case CommonAnalyser.PropertyValidationResult.MissingGetter:
+				case CommonAnalyser.PropertyValidationResult.MissingSetter:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
 						context.Node.GetLocation()
 					));
 					return;
 
-				case PropertyValidationResult.GetterHasBridgeAttributes:
-				case PropertyValidationResult.SetterHasBridgeAttributes:
+				case CommonAnalyser.PropertyValidationResult.GetterHasBridgeAttributes:
+				case CommonAnalyser.PropertyValidationResult.SetterHasBridgeAttributes:
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
 						context.Node.GetLocation()

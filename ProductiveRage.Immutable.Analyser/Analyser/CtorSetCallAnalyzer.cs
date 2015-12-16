@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ProductiveRage.Immutable.Analyser
 {
 	[DiagnosticAnalyzer(LanguageNames.CSharp)]
-	public class CtorSetCallAnalyzer : ImmutabilityHelperAnalyzer
+	public class CtorSetCallAnalyzer : DiagnosticAnalyzer
 	{
 		public const string DiagnosticId = "CtorSet";
 		public const string Category = "Design";
@@ -75,7 +75,7 @@ namespace ProductiveRage.Immutable.Analyser
 			var ctorSetMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
 			if ((ctorSetMethod == null)
 			|| (ctorSetMethod.ContainingAssembly == null)
-			|| (ctorSetMethod.ContainingAssembly.Name != AnalyserAssemblyName))
+			|| (ctorSetMethod.ContainingAssembly.Name != CommonAnalyser.AnalyserAssemblyName))
 				return;
 
 			// A SimpleMemberAccessExpression is a VERY simple "dot access" such as "this.CtorSet(..)"
@@ -120,29 +120,29 @@ namespace ProductiveRage.Immutable.Analyser
 				return;
 			}
 
-			switch (base.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
 			{
-				case PropertyValidationResult.Ok:
+				case CommonAnalyser.PropertyValidationResult.Ok:
 					return;
 
-				case PropertyValidationResult.NotSimpleLambdaExpression:
-				case PropertyValidationResult.LambdaDoesNotTargetProperty:
+				case CommonAnalyser.PropertyValidationResult.NotSimpleLambdaExpression:
+				case CommonAnalyser.PropertyValidationResult.LambdaDoesNotTargetProperty:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
 						context.Node.GetLocation()
 					));
 					return;
 
-				case PropertyValidationResult.MissingGetter:
-				case PropertyValidationResult.MissingSetter:
+				case CommonAnalyser.PropertyValidationResult.MissingGetter:
+				case CommonAnalyser.PropertyValidationResult.MissingSetter:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
 						context.Node.GetLocation()
 					));
 					return;
 
-				case PropertyValidationResult.GetterHasBridgeAttributes:
-				case PropertyValidationResult.SetterHasBridgeAttributes:
+				case CommonAnalyser.PropertyValidationResult.GetterHasBridgeAttributes:
+				case CommonAnalyser.PropertyValidationResult.SetterHasBridgeAttributes:
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
 						context.Node.GetLocation()

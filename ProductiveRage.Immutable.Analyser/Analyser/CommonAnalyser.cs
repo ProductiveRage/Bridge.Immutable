@@ -7,13 +7,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace ProductiveRage.Immutable.Analyser
 {
-	[DiagnosticAnalyzer(LanguageNames.CSharp)]
-	public abstract class ImmutabilityHelperAnalyzer : DiagnosticAnalyzer
+	public static class CommonAnalyser
 	{
-		protected const string AnalyserAssemblyName = "ProductiveRage.Immutable";
+		public const string AnalyserAssemblyName = "ProductiveRage.Immutable";
 		private const string BridgeAssemblyName = "Bridge";
 
-		protected PropertyValidationResult GetPropertyRetrieverArgumentStatus(ArgumentSyntax propertyRetrieverArgument, SyntaxNodeAnalysisContext context)
+		public static PropertyValidationResult GetPropertyRetrieverArgumentStatus(ArgumentSyntax propertyRetrieverArgument, SyntaxNodeAnalysisContext context)
 		{
 			if (propertyRetrieverArgument == null)
 				throw new ArgumentNullException(nameof(propertyRetrieverArgument));
@@ -54,7 +53,7 @@ namespace ProductiveRage.Immutable.Analyser
 			return PropertyValidationResult.Ok;
 		}
 
-		protected enum PropertyValidationResult
+		public enum PropertyValidationResult
 		{
 			Ok,
 
