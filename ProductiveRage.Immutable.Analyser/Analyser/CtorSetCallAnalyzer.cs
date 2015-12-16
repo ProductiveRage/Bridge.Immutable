@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,11 +7,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace ProductiveRage.Immutable.Analyser
 {
 	[DiagnosticAnalyzer(LanguageNames.CSharp)]
-	public class CtorSetCallAnalyzer : DiagnosticAnalyzer
+	public class CtorSetCallAnalyzer : ImmutabilityHelperAnalyzer
 	{
-		private const string BridgeAssemblyName = "Bridge";
-		private const string CtorSetAssemblyName = "ProductiveRage.Immutable";
-
 		public const string DiagnosticId = "CtorSet";
 		public const string Category = "Design";
 		public static DiagnosticDescriptor SimpleMemberAccessRule = new DiagnosticDescriptor(
@@ -80,7 +75,7 @@ namespace ProductiveRage.Immutable.Analyser
 			var ctorSetMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
 			if ((ctorSetMethod == null)
 			|| (ctorSetMethod.ContainingAssembly == null)
-			|| (ctorSetMethod.ContainingAssembly.Name != CtorSetAssemblyName))
+			|| (ctorSetMethod.ContainingAssembly.Name != AnalyserAssemblyName))
 				return;
 
 			// A SimpleMemberAccessExpression is a VERY simple "dot access" such as "this.CtorSet(..)"
@@ -125,87 +120,35 @@ namespace ProductiveRage.Immutable.Analyser
 				return;
 			}
 
-			SimpleNameSyntax tagetNameIfSimpleLambdaExpression;
-			if (propertyRetrieverArgument.Expression.Kind() != SyntaxKind.SimpleLambdaExpression)
-				tagetNameIfSimpleLambdaExpression = null;
-			else
+			switch (base.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
 			{
-				var propertyRetrieverExpression = (SimpleLambdaExpressionSyntax)propertyRetrieverArgument.Expression;
-				if (propertyRetrieverExpression.Body.Kind() != SyntaxKind.SimpleMemberAccessExpression)
-					tagetNameIfSimpleLambdaExpression = null;
-				else
-					tagetNameIfSimpleLambdaExpression = ((MemberAccessExpressionSyntax)propertyRetrieverExpression.Body).Name;
-			}
-			if (tagetNameIfSimpleLambdaExpression == null)
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					SimplePropertyAccessorArgumentAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
-			}
+				case PropertyValidationResult.Ok:
+					return;
 
-			var target = context.SemanticModel.GetSymbolInfo(tagetNameIfSimpleLambdaExpression).Symbol;
-			if (target == null)
-			{
-				// We won't be able to retrieve a Symbol "if the given expression did not bind successfully to a single symbol" - this means
-				// that the code is not in a complete state. We can only identify errors when everything is properly written and consistent.
-				return;
-			}
-			var property = target as IPropertySymbol;
-			if (property == null)
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					SimplePropertyAccessorArgumentAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
-			}
+				case PropertyValidationResult.NotSimpleLambdaExpression:
+				case PropertyValidationResult.LambdaDoesNotTargetProperty:
+					context.ReportDiagnostic(Diagnostic.Create(
+						SimplePropertyAccessorArgumentAccessRule,
+						context.Node.GetLocation()
+					));
+					return;
 
-			if (property.GetMethod == null)
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					SimplePropertyAccessorArgumentAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
-			}
-			if (HasDisallowedAttribute(property.GetMethod))
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					BridgeAttributeAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
-			}
+				case PropertyValidationResult.MissingGetter:
+				case PropertyValidationResult.MissingSetter:
+					context.ReportDiagnostic(Diagnostic.Create(
+						SimplePropertyAccessorArgumentAccessRule,
+						context.Node.GetLocation()
+					));
+					return;
 
-			if (property.SetMethod == null)
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					SimplePropertyAccessorArgumentAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
+				case PropertyValidationResult.GetterHasBridgeAttributes:
+				case PropertyValidationResult.SetterHasBridgeAttributes:
+					context.ReportDiagnostic(Diagnostic.Create(
+						BridgeAttributeAccessRule,
+						context.Node.GetLocation()
+					));
+					return;
 			}
-			if (HasDisallowedAttribute(property.SetMethod))
-			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					BridgeAttributeAccessRule,
-					context.Node.GetLocation()
-				));
-				return;
-			}
-		}
-
-		private static bool HasDisallowedAttribute(ISymbol symbol)
-		{
-			if (symbol == null)
-				throw new ArgumentNullException(nameof(symbol));
-
-			// I originally intended to just fail getters or setters with a [Name] attribute, but then I realised that [Template] does something
-			// very similar and that [Ignore] would result in the method not being emitted at all.. at the end of the day, I don't think that
-			// ANY of the Bridge attributes (since they are all about changing the translation behaviour) should be allowed
-			return symbol.GetAttributes().Any(a => a.AttributeClass.ContainingNamespace.Name == BridgeAssemblyName);
 		}
 
 		private static LocalizableString GetLocalizableString(string nameOfLocalizableResource)
