@@ -10,6 +10,7 @@ del *.xml
 del *.ps1
 
 copy ..\ProductiveRage.Immutable\bin\Release\ProductiveRage.Immutable.dll > nul
+copy ..\ProductiveRage.Immutable\bin\Release\ProductiveRage.Immutable.xml > nul
 
 copy ..\ProductiveRage.Immutable.Analyser\Analyser\bin\Release\*.dll > nul
 copy ..\ProductiveRage.Immutable.Analyser\Analyser\bin\Release\tools\* > nul
