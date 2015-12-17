@@ -178,7 +178,7 @@ This is still early days. I might decide in a couple of months that this was an 
 
 Right now, though, I'm excited about how this makes writing immutable classes easier *and* I had fun writing the sort-of reflection code for the JavaScript that Bridge.NET generates (Bridge v2 will have full support for reflection but the release schedule, as of December 2015, is still pending - this library is for Bridge 1.x).
 
-However, there *is* one thing that I don't like. If you don't use the expected property identifier format -
+~~However, there *is* one thing that I don't like. If you don't use the expected property identifier format -~~
 
 	// This is all good if Id is a property
 	this.CtorSet(_ => _.Id, id);
@@ -186,11 +186,31 @@ However, there *is* one thing that I don't like. If you don't use the expected p
 	// This is bad but will, unfortunately, compile
 	this.CtorSet(_ => _.Id + 1, id);
 	
-.. then you'll get a runtime exception. Likewise if the property that is specified does not have both a setter and a getter (a private getter and/or setter is fine but *no* getter/setter is a problem). If the getter or setter use one of Bridge's attributes that change the names of functions in the JavaScript then that too will result in a runtime exception (such as the [[Name]](http://bridge.net/kb/attribute-reference/#Name) or [[Template]](http://bridge.net/kb/attribute-reference/#Template) attributes).
+~~.. then you'll get a runtime exception. Likewise if the property that is specified does not have both a setter and a getter (a private getter and/or setter is fine but *no* getter/setter is a problem). If the getter or setter use one of Bridge's attributes that change the names of functions in the JavaScript then that too will result in a runtime exception (such as the [[Name]](http://bridge.net/kb/attribute-reference/#Name) or [[Template]](http://bridge.net/kb/attribute-reference/#Template) attributes).~~
 
-The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception - and these property identifiers only being validated at runtime is less-than-ideal in my eyes. I have great hope, however, that a  Roslyn-based Analyser will be able to ensure that things are written as expected *and pick up on it at compile-time, before the code is ever executed*. And that is my next step.
+The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception ~~- and these property identifiers only being validated at runtime is less-than-ideal in my eyes. I have great hope, however, that a  Roslyn-based Analyser will be able to ensure that things are written as expected *and pick up on it at compile-time, before the code is ever executed*. And that is my next step.~~
+
+**Update:** This solution now comes with its own Roslyn-based Analysers (which are distributed with the NuGet package) that addresses this problem! The Analysers look at your source code that makes "CtorSet" or "With" calls and ensures that the property Identifier lambda meets the requirements. Now the following *will* get identified as an error -
+
+	// Identified as an error by the Analyser:
+	//
+	//   "CtorSet's propertyRetriever lambda must directly indicate an instance property with
+	//    a getter and a setter (which may be private)"
+	//
+	// The project will not build if you're using Visual Studio 2015
+	//
+	this.CtorSet(_ => _.Id + 1, id);
+
+Similarly, invalid "With" calls will prevent the build from completing -
+
+	// Error:
+	//
+	//   "With's propertyRetriever lambda must directly indicate an instance property with a
+	//    getter and a setter (which may be private)"
+	//
+	p = p.With(_ => _.ToString(), "value");
 
 ## Visual Studio Support
 The NuGet package build from this solution ([nuget.org/packages/ProductiveRage.Immutable](https://www.nuget.org/packages/ProductiveRage.Immutable)) will work in earlier versions of Visual Studio but in order to build the package from source you need Visual Studio 2015 Update 1.
 
-There are Analysers included in the solution (not documented here yet) that will require Visual Studio 15 to take advantage of when consuming the NuGet package (Update 1 is *not* required). Visual Studio 2013 will not be able to use the Analyser, of course, but the library itself will work.
+The Analysers included in the solution will require Visual Studio 15 to take advantage of them when consuming the NuGet package (Update 1 is *not* required). Visual Studio 2013 will not be able to use the Analysers, of course, but the library itself will work.
