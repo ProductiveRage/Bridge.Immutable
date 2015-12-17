@@ -94,7 +94,7 @@ namespace ProductiveRage.Immutable.Analyser
 				case CommonAnalyser.PropertyValidationResult.LambdaDoesNotTargetProperty:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
-						context.Node.GetLocation()
+						propertyRetrieverArgument.GetLocation()
 					));
 					return;
 
@@ -102,7 +102,7 @@ namespace ProductiveRage.Immutable.Analyser
 				case CommonAnalyser.PropertyValidationResult.MissingSetter:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
-						context.Node.GetLocation()
+						propertyRetrieverArgument.GetLocation()
 					));
 					return;
 
@@ -110,7 +110,7 @@ namespace ProductiveRage.Immutable.Analyser
 				case CommonAnalyser.PropertyValidationResult.SetterHasBridgeAttributes:
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
-						context.Node.GetLocation()
+						propertyRetrieverArgument.GetLocation()
 					));
 					return;
 			}

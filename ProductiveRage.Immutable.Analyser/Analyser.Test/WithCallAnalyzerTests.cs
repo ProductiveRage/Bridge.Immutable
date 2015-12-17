@@ -100,7 +100,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 15)
+					new DiagnosticResultLocation("Test0.cs", 10, 22)
 				}
 			};
 
@@ -137,7 +137,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 15)
+					new DiagnosticResultLocation("Test0.cs", 10, 22)
 				}
 			};
 
@@ -174,7 +174,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 15)
+					new DiagnosticResultLocation("Test0.cs", 10, 22)
 				}
 			};
 
@@ -211,7 +211,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 15)
+					new DiagnosticResultLocation("Test0.cs", 10, 22)
 				}
 			};
 
@@ -249,7 +249,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 11, 15)
+					new DiagnosticResultLocation("Test0.cs", 11, 22)
 				}
 			};
 
@@ -287,7 +287,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 11, 15)
+					new DiagnosticResultLocation("Test0.cs", 11, 22)
 				}
 			};
 
