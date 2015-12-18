@@ -80,6 +80,11 @@ namespace ProductiveRage.Immutable
 		{
 			return IsDefined ? value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type
 		}
+
+		public override string ToString()
+		{
+			return isDefined ? Value.ToString() : "{Missing}";
+		}
 	}
 
 	public static class Optional
