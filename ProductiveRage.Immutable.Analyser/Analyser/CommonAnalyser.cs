@@ -17,7 +17,7 @@ namespace ProductiveRage.Immutable.Analyser
 			if (propertyRetrieverArgument == null)
 				throw new ArgumentNullException(nameof(propertyRetrieverArgument));
 
-			SimpleNameSyntax tagetNameIfSimpleLambdaExpression;
+			SimpleNameSyntax targetNameIfSimpleLambdaExpression;
 			if (propertyRetrieverArgument.Expression.Kind() != SyntaxKind.SimpleLambdaExpression)
 				return PropertyValidationResult.NotSimpleLambdaExpression;
 			else
@@ -25,15 +25,15 @@ namespace ProductiveRage.Immutable.Analyser
 				var propertyRetrieverExpression = (SimpleLambdaExpressionSyntax)propertyRetrieverArgument.Expression;
 				if (propertyRetrieverExpression.Body.Kind() != SyntaxKind.SimpleMemberAccessExpression)
 					return PropertyValidationResult.NotSimpleLambdaExpression;
-				tagetNameIfSimpleLambdaExpression = ((MemberAccessExpressionSyntax)propertyRetrieverExpression.Body).Name;
+				targetNameIfSimpleLambdaExpression = ((MemberAccessExpressionSyntax)propertyRetrieverExpression.Body).Name;
 			}
 
-			var target = context.SemanticModel.GetSymbolInfo(tagetNameIfSimpleLambdaExpression).Symbol;
+			var target = context.SemanticModel.GetSymbolInfo(targetNameIfSimpleLambdaExpression).Symbol;
 			if (target == null)
 			{
 				// We won't be able to retrieve a Symbol "if the given expression did not bind successfully to a single symbol" - this means
 				// that the code is not in a complete state. We can only identify errors when everything is properly written and consistent.
-				return PropertyValidationResult.Ok;
+				return PropertyValidationResult.UnableToConfirmOrDeny;
 			}
 
 			var property = target as IPropertySymbol;
@@ -46,7 +46,16 @@ namespace ProductiveRage.Immutable.Analyser
 				return PropertyValidationResult.GetterHasBridgeAttributes;
 
 			if (property.SetMethod == null)
+			{
+				// If the class is in a referenced assembly then we won't be able to inspect it's setter if it's private (the metadata from
+				// that assembly will not declare the presence of the private setter).
+				// TODO: May need to complement this process (and try to address its limitations) by adding an analyser around IAmImmutable
+				// implementations to ensure that they only use properties that follow the expected pattern (all gettable properties to also
+				// have setters and for neither the getter nor setter to have Bridge attributes).
+				if (property.Locations.Any(l => l.IsInMetadata))
+					return PropertyValidationResult.UnableToConfirmOrDeny;
 				return PropertyValidationResult.MissingSetter;
+			}
 			if (HasDisallowedAttribute(property.SetMethod))
 				return PropertyValidationResult.SetterHasBridgeAttributes;
 
@@ -63,7 +72,9 @@ namespace ProductiveRage.Immutable.Analyser
 			MissingGetter,
 			MissingSetter,
 			GetterHasBridgeAttributes,
-			SetterHasBridgeAttributes
+			SetterHasBridgeAttributes,
+
+			UnableToConfirmOrDeny
 		}
 
 		private static bool HasDisallowedAttribute(ISymbol symbol)

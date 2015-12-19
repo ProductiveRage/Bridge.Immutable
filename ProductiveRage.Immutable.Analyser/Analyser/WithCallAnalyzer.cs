@@ -88,6 +88,7 @@ namespace ProductiveRage.Immutable.Analyser
 			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
+				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
 					return;
 
 				case CommonAnalyser.PropertyValidationResult.NotSimpleLambdaExpression:
