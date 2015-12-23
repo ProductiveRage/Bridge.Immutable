@@ -14,7 +14,13 @@ namespace ProductiveRage.Immutable
 		public Optional(T value) : this(value, value != null) { }
 		private Optional(T value, bool isDefined)
 		{
-			this.isDefined = (value != null);
+			// Need to check both isDefined and whether the value is null when deciding whether the instace's IsDefined should be set -
+			// if the Missing value is used for a non-reference type (such as int) then value will be non-null (since non-reference
+			// types CAN'T be null) and isDefined will be false, so the final IsDefined value should be false. If an instance is
+			// declared through the public constructor (or through a cast or through the static generic For function) and T is
+			// a reference type then IsDefined only be set to true if the specified value is not null (since there is no point
+			// in saying IsDefined: true but value: null, if a null value is desired then IsDefined should be false!)
+			this.isDefined = isDefined && (value != null);
 			this.value = value;
 		}
 
