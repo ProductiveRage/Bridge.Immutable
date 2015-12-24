@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestHelper;
@@ -7,7 +6,7 @@ using TestHelper;
 namespace ProductiveRage.Immutable.Analyser.Test
 {
 	[TestClass]
-	public class WithCallAnalyzerTests : CodeFixVerifier
+	public class WithCallAnalyzerTests : DiagnosticVerifier
 	{
 		[TestMethod]
 		public void BlankContent()
@@ -292,12 +291,6 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			};
 
 			VerifyCSharpDiagnostic(testContent, expected);
-		}
-
-
-		protected override CodeFixProvider GetCSharpCodeFixProvider()
-		{
-			return new NullCodeFixProvider();
 		}
 
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

@@ -37,7 +37,6 @@
     </Compile>
     <Compile Include="CommonAnalyser.cs" />
     <Compile Include="WithCallAnalyzer.cs" />
-    <Compile Include="NullCodeFixProvider.cs" />
     <Compile Include="CtorSetCallAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
