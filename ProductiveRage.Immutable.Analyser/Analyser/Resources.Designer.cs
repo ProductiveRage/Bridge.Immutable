@@ -107,6 +107,33 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Properties on IAmImmutable must follow prescribed guidelines.
+        /// </summary>
+        internal static string IAmImmutableAnalyserTitle {
+            get {
+                return ResourceManager.GetString("IAmImmutableAnalyserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property &apos;{0}&apos; must have a setter since it has a getter and is on a class that implements IAmImmutable.
+        /// </summary>
+        internal static string IAmImmutablePropertiesMustHaveSettersMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutablePropertiesMustHaveSettersMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to May not have Bridge attributes on properties with getters ({0}) on classes that implement IAmImmutable.
+        /// </summary>
+        internal static string IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to With should only be used in a particular manner.
         /// </summary>
         internal static string WithAnalyserTitle {

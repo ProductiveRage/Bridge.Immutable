@@ -15,16 +15,16 @@ namespace ProductiveRage.Immutable.Analyser
 		public const string Category = "Design";
 		public static DiagnosticDescriptor MustHaveSettersOnPropertiesWithGettersAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			"IAmImmutable: Must have a setter on a property if it has a getter", // TODO GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
-			"Property '{0}' must have a setter since it has a getter and is on a class that implements IAmImmutable", // TODO GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMustHaveSettersMessageFormat)),
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMustHaveSettersMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
 		public static DiagnosticDescriptor MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
-			"IAmImmutable: May not have Bridge attributes on properties with getters", // TODO GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
-			"IAmImmutable: May not have Bridge attributes on properties with getters ({0})", // TODO GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat)),
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
