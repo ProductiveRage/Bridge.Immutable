@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -51,36 +52,61 @@ namespace ProductiveRage.Immutable.Analyser
 			if (classDeclaration == null)
 				return;
 
+			// This is likely to be the most expensive work (since it requires lookup of other symbols elsewhere in the solution, whereas the
+			// logic below only look at code in the current file) so only perform it when required (leave it as null until we absolutely need
+			// to know whether the current class implements IAmImmutable or not)
+			bool? classImplementIAmImmutable = null;
 			foreach (var property in classDeclaration.ChildNodes().OfType<PropertyDeclarationSyntax>())
 			{
+				Diagnostic errorIfAny;
 				var getterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
 				var setterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
 				if ((getterIfDefined != null) && (setterIfDefined == null))
 				{
-					context.ReportDiagnostic(Diagnostic.Create(
+					errorIfAny = Diagnostic.Create(
 						MustHaveSettersOnPropertiesWithGettersAccessRule,
 						property.GetLocation(),
 						property.Identifier.Text
-					));
-					continue;
+					);
 				}
-				if ((getterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, getterIfDefined)))
+				else if ((getterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, getterIfDefined)))
 				{
-					context.ReportDiagnostic(Diagnostic.Create(
+					errorIfAny = Diagnostic.Create(
 						MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
 						getterIfDefined.GetLocation(),
 						property.Identifier.Text
-					));
+					);
 				}
-				if ((setterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, setterIfDefined)))
+				else if ((setterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, setterIfDefined)))
 				{
-					context.ReportDiagnostic(Diagnostic.Create(
+					errorIfAny = Diagnostic.Create(
 						MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
 						setterIfDefined.GetLocation(),
 						property.Identifier.Text
-					));
+					);
 				}
+				else
+					continue;
+				
+				// Enountered a potential error if the current class implements IAmImmutable - so find out whether it does or not (if it
+				// doesn't then no further work is required and we can exit the entire process early)
+				if (classImplementIAmImmutable == null)
+					classImplementIAmImmutable = ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
+				if (!classImplementIAmImmutable.Value)
+					return;
+				context.ReportDiagnostic(errorIfAny);
 			}
+		}
+
+		private static bool ImplementsIAmImmutable(INamedTypeSymbol classOrInterfaceSymbol)
+		{
+			if (classOrInterfaceSymbol == null)
+				throw new ArgumentNullException(nameof(classOrInterfaceSymbol));
+
+			return 
+				(classOrInterfaceSymbol.ToString() == CommonAnalyser.AnalyserAssemblyName + ".IAmImmutable") ||
+				((classOrInterfaceSymbol.BaseType != null) && ImplementsIAmImmutable(classOrInterfaceSymbol.BaseType)) ||
+				classOrInterfaceSymbol.Interfaces.Any(i => ImplementsIAmImmutable(i));
 		}
 
 		private static LocalizableString GetLocalizableString(string nameOfLocalizableResource)
