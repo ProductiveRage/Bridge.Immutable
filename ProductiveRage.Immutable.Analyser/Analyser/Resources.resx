@@ -132,6 +132,15 @@
   <data name="CtorSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
   </data>
+  <data name="IAmImmutableAnalyserTitle" xml:space="preserve">
+    <value>Properties on IAmImmutable must follow prescribed guidelines</value>
+  </data>
+  <data name="IAmImmutablePropertiesMustHaveSettersMessageFormat" xml:space="preserve">
+    <value>Property '{0}' must have a setter since it has a getter and is on a class that implements IAmImmutable</value>
+  </data>
+  <data name="IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat" xml:space="preserve">
+    <value>May not have Bridge attributes on properties with getters ({0}) on classes that implement IAmImmutable</value>
+  </data>
   <data name="WithAnalyserTitle" xml:space="preserve">
     <value>With should only be used in a particular manner</value>
   </data>
