@@ -47,11 +47,13 @@ namespace ProductiveRage.Immutable.Analyser
 
 			if (property.SetMethod == null)
 			{
-				// If the class is in a referenced assembly then we won't be able to inspect it's setter if it's private (the metadata from
+				// If the class is in a referenced assembly then we won't be able to inspect its setter if it's private (the metadata from
 				// that assembly will not declare the presence of the private setter).
-				// TODO: May need to complement this process (and try to address its limitations) by adding an analyser around IAmImmutable
-				// implementations to ensure that they only use properties that follow the expected pattern (all gettable properties to also
-				// have setters and for neither the getter nor setter to have Bridge attributes).
+				// - There are analysers around IAmImmutable implementations that try to ensure that they only use properties that follow the
+				//   expected pattern (all gettable properties to also have setters and for neither the getter nor setter to have Bridge
+				//   attributes), however this is not a perfect solution since someone could write a library in VS 2013 (or any other
+				//   IDE that doesn't support analysers) that do not follow the rules and the consuming project would not find out
+				//   until runtime.. but I think that it's the best that we can do
 				if (property.Locations.Any(l => l.IsInMetadata))
 					return PropertyValidationResult.UnableToConfirmOrDeny;
 				return PropertyValidationResult.MissingSetter;
@@ -77,7 +79,7 @@ namespace ProductiveRage.Immutable.Analyser
 			UnableToConfirmOrDeny
 		}
 
-		private static bool HasDisallowedAttribute(ISymbol symbol)
+		public static bool HasDisallowedAttribute(IMethodSymbol symbol)
 		{
 			if (symbol == null)
 				throw new ArgumentNullException(nameof(symbol));

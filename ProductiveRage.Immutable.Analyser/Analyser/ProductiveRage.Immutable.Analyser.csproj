@@ -36,6 +36,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CommonAnalyser.cs" />
+    <Compile Include="IAmImmutableAnalyzer.cs" />
     <Compile Include="WithCallAnalyzer.cs" />
     <Compile Include="CtorSetCallAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
