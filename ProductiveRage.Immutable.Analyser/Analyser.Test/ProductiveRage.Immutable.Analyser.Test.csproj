@@ -100,7 +100,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="IAmImmutableCallAnalyzerTests.cs" />
+    <Compile Include="IAmImmutableAnalyzerTests.cs" />
     <Compile Include="WithCallAnalyzerTests.cs" />
     <Compile Include="Verifiers\DiagnosticVerifier.cs" />
     <Compile Include="Helpers\DiagnosticResult.cs" />

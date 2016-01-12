@@ -58,6 +58,15 @@ namespace ProductiveRage.Immutable.Analyser
 			bool? classImplementIAmImmutable = null;
 			foreach (var property in classDeclaration.ChildNodes().OfType<PropertyDeclarationSyntax>())
 			{
+				if (property.ExplicitInterfaceSpecifier != null)
+				{
+					// Since CtorSet and With can not target properties that are not directly accessible through a reference to the
+					// IAmImmutable-implementing type (because "_ => _.Name" is acceptable as a property retriever but not something
+					// like "_ => ((IWhatever)_).Name") if a property is explicitly implemented for a base interface then the rules
+					// below need not be applied to it.
+					continue;
+				}
+
 				Diagnostic errorIfAny;
 				var getterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
 				var setterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.SetAccessorDeclaration);

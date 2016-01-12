@@ -159,6 +159,28 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 				VerifyCSharpDiagnostic(testContent, expected);
 			}
+
+			[TestMethod]
+			public void GettablePropertiesWithoutSettersAreAllowedOnExplicitInterfaceImplementations()
+			{
+				var testContent = @"
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public interface IHaveValue
+						{
+							string Value { get; }
+						}
+
+						public class C1 : IAmImmutable, IHaveValue
+						{
+							string IHaveValue.Value { get { return ""abc""; } }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
 		}
 
 		[TestClass]
