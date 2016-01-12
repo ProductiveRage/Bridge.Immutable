@@ -80,6 +80,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        /// </summary>
+        internal static string CtorDirectPropertyTargetAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("CtorDirectPropertyTargetAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CtorSet should only be called within a constructor.
         /// </summary>
         internal static string CtorMayOnlyBeCalledWithConstructorMessageFormat {
@@ -148,6 +157,15 @@ namespace ProductiveRage.Immutable.Analyser {
         internal static string WithBridgeAttributeMessageFormat {
             get {
                 return ResourceManager.GetString("WithBridgeAttributeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to With&apos;s propertyRetriever lambda&apos;s target must be a direct access and may not include any casts or other indirection.
+        /// </summary>
+        internal static string WithDirectPropertyTargetAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("WithDirectPropertyTargetAccessorArgumentMessageFormat", resourceCulture);
             }
         }
         

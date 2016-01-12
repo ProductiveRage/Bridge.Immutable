@@ -27,6 +27,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor IndirectTargetAccessorAccessRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.CtorDirectPropertyTargetAccessorArgumentMessageFormat)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 		public static DiagnosticDescriptor SimplePropertyAccessorArgumentAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
@@ -51,6 +59,7 @@ namespace ProductiveRage.Immutable.Analyser
 				return ImmutableArray.Create(
 					SimpleMemberAccessRule,
 					ConstructorRule,
+					IndirectTargetAccessorAccessRule,
 					SimplePropertyAccessorArgumentAccessRule,
 					BridgeAttributeAccessRule
 				);
@@ -124,6 +133,13 @@ namespace ProductiveRage.Immutable.Analyser
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.IndirectTargetAccess:
+					context.ReportDiagnostic(Diagnostic.Create(
+						IndirectTargetAccessorAccessRule,
+						propertyRetrieverArgument.GetLocation()
+					));
 					return;
 
 				case CommonAnalyser.PropertyValidationResult.NotSimpleLambdaExpression:

@@ -123,6 +123,9 @@
   <data name="CtorBridgeAttributeMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
   </data>
+  <data name="CtorDirectPropertyTargetAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+  </data>
   <data name="CtorMayOnlyBeCalledWithConstructorMessageFormat" xml:space="preserve">
     <value>CtorSet should only be called within a constructor</value>
   </data>
@@ -146,6 +149,9 @@
   </data>
   <data name="WithBridgeAttributeMessageFormat" xml:space="preserve">
     <value>With's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
+  </data>
+  <data name="WithDirectPropertyTargetAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>With's propertyRetriever lambda's target must be a direct access and may not include any casts or other indirection</value>
   </data>
   <data name="WithSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>With's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>

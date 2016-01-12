@@ -323,6 +323,48 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent, expected);
 		}
 
+		/// <summary>
+		/// This test also exists in the WithCallAnalyzerTests class, where its purpose is documented in more detail
+		/// </summary>
+		[TestMethod]
+		public void PropertyTargetMustNotBeManipulatedOrReCast()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public interface IHaveAnId
+					{
+						int Id { get; set; }
+					}
+
+					public class Something : IAmImmutable, IHaveAnId
+					{
+						public Something(int id, string name)
+						{
+							this.CtorSet(_ => ((IHaveAnId)_).Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+						int IHaveAnId.Id { get; set; }
+						public string Name { get; private set; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = CtorSetCallAnalyzer.DiagnosticId,
+				Message = CtorSetCallAnalyzer.IndirectTargetAccessorAccessRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 15, 21)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new CtorSetCallAnalyzer();

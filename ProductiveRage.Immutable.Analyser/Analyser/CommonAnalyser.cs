@@ -25,6 +25,17 @@ namespace ProductiveRage.Immutable.Analyser
 				var propertyRetrieverExpression = (SimpleLambdaExpressionSyntax)propertyRetrieverArgument.Expression;
 				if (propertyRetrieverExpression.Body.Kind() != SyntaxKind.SimpleMemberAccessExpression)
 					return PropertyValidationResult.NotSimpleLambdaExpression;
+
+				var memberAccess = (MemberAccessExpressionSyntax)propertyRetrieverExpression.Body;
+				if (memberAccess.Expression.Kind() != SyntaxKind.IdentifierName)
+				{
+					// The lambda must be of the form "_ => _.Name" and not "_ => ((ISomething)_).Name" or anything like that. This ensures
+					// that all public gettable properties on the type can be checked for a setter while also allowing it to implement other
+					// interfaces which don't follow these rules, so long as those interfaces are explicitly implemented. If it was acceptable
+					// to cast the lambda target then this would not be possible.
+					return PropertyValidationResult.IndirectTargetAccess;
+				}
+
 				targetNameIfSimpleLambdaExpression = ((MemberAccessExpressionSyntax)propertyRetrieverExpression.Body).Name;
 			}
 
@@ -70,6 +81,7 @@ namespace ProductiveRage.Immutable.Analyser
 
 			NotSimpleLambdaExpression,
 			LambdaDoesNotTargetProperty,
+			IndirectTargetAccess,
 
 			MissingGetter,
 			MissingSetter,
