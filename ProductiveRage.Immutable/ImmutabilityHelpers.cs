@@ -22,6 +22,8 @@ namespace ProductiveRage.Immutable
 		/// on a reference (if that reference did not lock all of the properties in its constructor) then it will only operate against types that implement the
 		/// IAmImmutable interface - this is an empty interface whose only purpose is to identify a class that has been designed to work with this process.
 		/// </summary>
+
+		[IgnoreGeneric]
 		public static void CtorSet<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, TPropertyValue value) where T : IAmImmutable
 		{
 			if (source == null)
@@ -43,6 +45,7 @@ namespace ProductiveRage.Immutable
 		/// and the source reference will be passed straight back out. The new property value may not be null - if the property must be nullable then it should have a type
 		/// wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
+		[IgnoreGeneric]
 		public static T With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, TPropertyValue value) where T : IAmImmutable
 		{
 			if (source == null)
@@ -74,6 +77,7 @@ namespace ProductiveRage.Immutable
 		/// straight back out. The new property value may not be null - if the property must be nullable then it should have a type wrapped in an Optional struct, which will
 		/// ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
+		[IgnoreGeneric]
 		public static T With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index, TPropertyElement value) where T : IAmImmutable
 		{
 			if (source == null)
@@ -94,6 +98,7 @@ namespace ProductiveRage.Immutable
 		/// use a Bridge [Name] attribute. The returned lambda will throw an exception if called with a null value - if the property must be nullable then it should
 		/// have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
+		[IgnoreGeneric]
 		public static Func<TPropertyValue, T> With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier) where T : IAmImmutable
 		{
 			if (source == null)
@@ -129,6 +134,7 @@ namespace ProductiveRage.Immutable
 		/// with a null value - if the property must be nullable then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not
 		/// be null (though it may represent a "missing" value).
 		/// </summary>
+		[IgnoreGeneric]
 		public static Func<TPropertyElement, T> With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index) where T : IAmImmutable
 		{
 			if (source == null)
@@ -165,6 +171,7 @@ namespace ProductiveRage.Immutable
 			};
 		}
 
+		[IgnoreGeneric]
 		private static T Clone<T>(T source)
 		{
 			if (source == null)
@@ -172,17 +179,17 @@ namespace ProductiveRage.Immutable
 
 			// The simplest way to clone a generic reference seems to be a combination of Object.create and then copying the properties from the source to the clone (copying
 			// may not be done from the prototype since there may be instance data that must be carried across)
-			T clone = default(T);
-			/*@clone = Object.create(source.constructor.prototype);
-				for (var i in source) {
-					clone[i] = source[i];
-				}*/
+			T clone = Script.Write<T>("Object.create(source.constructor.prototype)");
+			/*@for (var i in source) {
+				clone[i] = source[i];
+			}*/
 			return clone;
 		}
 
 		/// <summary>
 		/// This will get the setter delegate from cache if available - if not then it will construct a new setter, push it into the cache and then return it
 		/// </summary>
+		[IgnoreGeneric]
 		private static PropertySetter GetSetter<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (source == null)
@@ -201,6 +208,7 @@ namespace ProductiveRage.Immutable
 			return setter;
 		}
 
+		[IgnoreGeneric]
 		private static PropertySetter ConstructSetter<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (source == null)
@@ -263,6 +271,7 @@ namespace ProductiveRage.Immutable
 			};
 		}
 
+		[IgnoreGeneric]
 		private static string GetFunctionSingleArgumentName<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (propertyIdentifier == null)
@@ -277,6 +286,7 @@ namespace ProductiveRage.Immutable
 			return propertyIdentifierString.JsSubstring(argumentListStartsAt + 1, argumentListEndsAt);
 		}
 
+		[IgnoreGeneric]
 		private static int GetFunctionArgumentCount<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (propertyIdentifier == null)
@@ -285,6 +295,7 @@ namespace ProductiveRage.Immutable
 			return Script.Write<int>("propertyIdentifier.length");
 		}
 
+		[IgnoreGeneric]
 		private static string GetFunctionStringRepresentation<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (propertyIdentifier == null)
@@ -296,6 +307,7 @@ namespace ProductiveRage.Immutable
 		// See http://stackoverflow.com/a/9924463 for more details
 		private readonly static Regex STRIP_COMMENTS = Script.Write<Regex>(@"/(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))/mg");
 		private readonly static Regex WHITESPACE_SEGMENTS = Script.Write<Regex>(@"/\s+/g");
+		[IgnoreGeneric]
 		private static string GetNormalisedFunctionStringRepresentation<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
 		{
 			if (propertyIdentifier == null)

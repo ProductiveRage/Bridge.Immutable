@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Bridge
 {
+	public class IgnoreGenericAttribute : Attribute { }
 	public class NameAttribute : Attribute
 	{
 		public NameAttribute(string name) { }
