@@ -7,9 +7,6 @@ namespace ProductiveRage.Immutable
 {
 	public static class ImmutabilityHelpers
 	{
-		// Delegates can't be used as types in a dictionary unless they have a Name attribute to map them on to something that exists in JavaScript (until the following bug
-		// report is addressed: http://forums.bridge.net/forum/bridge-net-pro/bugs/1205-dictionary-with-tvalue-that-is-a-delegate-fails-at-runtime)
-		[Name("Function")]
 		private delegate void PropertySetter(object source, object newPropertyValue, bool ignoreAnyExistingLock);
 		private readonly static Dictionary<CacheKey, PropertySetter> Cache = new Dictionary<CacheKey, PropertySetter>();
 
