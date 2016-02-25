@@ -37,7 +37,7 @@ namespace ProductiveRage.Immutable
 			_headIfAny = headIfAny;
 		}
 
-		// Making this a unit prevents having to have a summary comment explaining that it will always be zero or greater
+		// Making this a uint prevents having to have a summary comment explaining that it will always be zero or greater
 		public uint Count { get { return (_headIfAny == null) ? 0 : (uint)_headIfAny.Count; } }
 
 		/// <summary>
@@ -58,6 +58,36 @@ namespace ProductiveRage.Immutable
 				Item = item,
 				NextIfAny = _headIfAny
 			});
+		}
+
+		/// <summary>
+		/// Due to the internal structure of this class, this is a more expensive operation that Insert (which inserts a new item at the start of the set, rather than at
+		/// the end, which this function does).  Null references are not allowed (an exception will be thrown), if you require values that may be null then the type parameter
+		/// should be an Optional.
+		/// </summary>
+		public Set<T> Add(T item)
+		{
+			if (item == null)
+				throw new ArgumentNullException("item");
+
+			var currentValues = new T[Count];
+			var node = _headIfAny;
+			for (var index = 0; index < Count; index++)
+			{
+				currentValues[index] = node.Item;
+				node = node.NextIfAny;
+			}
+			var newHead = new Node { Count = 1, Item = item, NextIfAny = null };
+			for (var index = Count - 1; index >= 0; index--)
+			{
+				newHead = new Node
+				{
+					Count = newHead.Count + 1,
+					Item = currentValues[index],
+					NextIfAny = newHead
+				};
+			}
+			return new Set<T>(newHead);
 		}
 
 		/// <summary>
