@@ -244,6 +244,7 @@ namespace ProductiveRage.Immutable
 				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.getName(); }\", rather than \"" + propertyIdentifierStringContent + "\"");
 
 			var propertyName = propertyNameMatchResults[1];
+			var propertyGetterName = "get" + propertyName;
 			var propertySetterName = "set" + propertyName;
 			var hasFunctionWithExpectedSetterName = false;
 			var hasExpectedSetter = false;
@@ -251,7 +252,8 @@ namespace ProductiveRage.Immutable
 				hasFunctionWithExpectedSetterName = (typeof(setter) === "function");
 				if (hasFunctionWithExpectedSetterName) {
 					hasExpectedSetter = (setter.length === 1); // Ensure that it takes precisely one argument
-				}*/
+				}
+				var getter = source[propertyGetterName];*/
 			if (!hasFunctionWithExpectedSetterName)
 				throw new ArgumentException("Failed to find expected property setter \"" + propertySetterName + "\"");
 			else if (!hasExpectedSetter)
@@ -265,6 +267,12 @@ namespace ProductiveRage.Immutable
 					if (!isLocked) {
 						setter.apply(target, [newValue]);
 						target[propertyLockName] = true;
+						if (typeof(target[propertyGetterName]) === "function") {
+							target[propertyGetterName].$scaffolding = true;
+						}
+						if (typeof(target[propertySetterName]) === "function") {
+							target[propertySetterName].$scaffolding = true;
+						}
 					}*/
 				if (isLocked)
 					throw new ArgumentException("This property has been locked - it should only be set within the constructor");
