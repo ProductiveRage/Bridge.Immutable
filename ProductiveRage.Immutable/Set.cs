@@ -78,8 +78,9 @@ namespace ProductiveRage.Immutable
 				node = node.NextIfAny;
 			}
 			var newHead = new Node { Count = 1, Item = item, NextIfAny = null };
-			for (var index = Count - 1; index >= 0; index--)
+			for (var loopIndex = 0; loopIndex < Count; loopIndex++)
 			{
+				var index = (Count - 1) - loopIndex;
 				newHead = new Node
 				{
 					Count = newHead.Count + 1,
