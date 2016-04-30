@@ -12,6 +12,14 @@ namespace ProductiveRage.Immutable.Analyser
 	{
 		public const string DiagnosticId = "IAmImmutable";
 		private const string Category = "Design";
+		public static DiagnosticDescriptor MayNotHavePublicNonReadOnlyFieldsRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 		public static DiagnosticDescriptor MustHaveSettersOnPropertiesWithGettersAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
@@ -34,6 +42,7 @@ namespace ProductiveRage.Immutable.Analyser
 			get
 			{
 				return ImmutableArray.Create(
+					MayNotHavePublicNonReadOnlyFieldsRule,
 					MustHaveSettersOnPropertiesWithGettersAccessRule,
 					MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule
 				);
@@ -50,6 +59,19 @@ namespace ProductiveRage.Immutable.Analyser
 			var classDeclaration = context.Node as ClassDeclarationSyntax;
 			if (classDeclaration == null)
 				return;
+
+			var publicMutableFields = classDeclaration.ChildNodes()
+				.OfType<FieldDeclarationSyntax>()
+				.Where(field => field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PublicKeyword)))
+				.Where(field => !field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ReadOnlyKeyword)));
+			foreach (var publicMutableField in publicMutableFields)
+			{
+				context.ReportDiagnostic(Diagnostic.Create(
+					MayNotHavePublicNonReadOnlyFieldsRule,
+					publicMutableField.GetLocation(),
+					string.Join(", ", publicMutableField.Declaration.Variables.Select(variable => variable.Identifier.Text))
+				));
+			}
 
 			// This is likely to be the most expensive work (since it requires lookup of other symbols elsewhere in the solution, whereas the
 			// logic below only look at code in the current file) so only perform it when required (leave it as null until we absolutely need

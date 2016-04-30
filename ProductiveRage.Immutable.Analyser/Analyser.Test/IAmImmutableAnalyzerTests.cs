@@ -181,6 +181,39 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 				VerifyCSharpDiagnostic(testContent);
 			}
+
+			/// <summary>
+			/// If there's a refactor from mutable types (using fields rather than properties) then the mutable fields should be identified as invalid for
+			/// an IAmImmutable implementation (there could feasibly be an argument that private mutable fields have a purpose but never public fields)
+			/// </summary>
+			[TestMethod]
+			public void PublicMutableFieldsAreNotAllowed()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public int Id;
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.MayNotHavePublicNonReadOnlyFieldsRule.MessageFormat.ToString(), "Id"),
+					Severity = DiagnosticSeverity.Error,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
 		}
 
 		[TestClass]

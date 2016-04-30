@@ -143,6 +143,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IAmImmutable implementations may not have non-readonly public fields (such as {0}).
+        /// </summary>
+        internal static string IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property &apos;{0}&apos; must have a setter since it has a getter and is on a class that implements IAmImmutable.
         /// </summary>
         internal static string IAmImmutablePropertiesMustHaveSettersMessageFormat {
