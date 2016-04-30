@@ -10,7 +10,7 @@ namespace ProductiveRage.Immutable.Analyser
 	public class CtorSetCallAnalyzer : DiagnosticAnalyzer
 	{
 		public const string DiagnosticId = "CtorSet";
-		public const string Category = "Design";
+		private const string Category = "Design";
 		public static DiagnosticDescriptor SimpleMemberAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),

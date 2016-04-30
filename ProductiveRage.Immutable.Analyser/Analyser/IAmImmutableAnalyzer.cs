@@ -12,7 +12,7 @@ namespace ProductiveRage.Immutable.Analyser
 	public class IAmImmutableAnalyzer : DiagnosticAnalyzer
 	{
 		public const string DiagnosticId = "IAmImmutable";
-		public const string Category = "Design";
+		private const string Category = "Design";
 		public static DiagnosticDescriptor MustHaveSettersOnPropertiesWithGettersAccessRule = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
