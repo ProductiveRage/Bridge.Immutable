@@ -101,5 +101,16 @@ namespace ProductiveRage.Immutable.Analyser
 			// ANY of the Bridge attributes (since they are all about changing the translation behaviour) should be allowed
 			return symbol.GetAttributes().Any(a => a.AttributeClass.ContainingNamespace.Name == BridgeAssemblyName);
 		}
+
+		public static bool ImplementsIAmImmutable(INamedTypeSymbol classOrInterfaceSymbol)
+		{
+			if (classOrInterfaceSymbol == null)
+				throw new ArgumentNullException(nameof(classOrInterfaceSymbol));
+
+			return
+				(classOrInterfaceSymbol.ToString() == CommonAnalyser.AnalyserAssemblyName + ".IAmImmutable") ||
+				((classOrInterfaceSymbol.BaseType != null) && ImplementsIAmImmutable(classOrInterfaceSymbol.BaseType)) ||
+				classOrInterfaceSymbol.Interfaces.Any(i => ImplementsIAmImmutable(i));
+		}
 	}
 }

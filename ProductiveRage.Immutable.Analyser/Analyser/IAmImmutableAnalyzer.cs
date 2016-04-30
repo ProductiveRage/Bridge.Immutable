@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -100,22 +99,11 @@ namespace ProductiveRage.Immutable.Analyser
 				// Enountered a potential error if the current class implements IAmImmutable - so find out whether it does or not (if it
 				// doesn't then no further work is required and we can exit the entire process early)
 				if (classImplementIAmImmutable == null)
-					classImplementIAmImmutable = ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
+					classImplementIAmImmutable = CommonAnalyser.ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
 				if (!classImplementIAmImmutable.Value)
 					return;
 				context.ReportDiagnostic(errorIfAny);
 			}
-		}
-
-		private static bool ImplementsIAmImmutable(INamedTypeSymbol classOrInterfaceSymbol)
-		{
-			if (classOrInterfaceSymbol == null)
-				throw new ArgumentNullException(nameof(classOrInterfaceSymbol));
-
-			return 
-				(classOrInterfaceSymbol.ToString() == CommonAnalyser.AnalyserAssemblyName + ".IAmImmutable") ||
-				((classOrInterfaceSymbol.BaseType != null) && ImplementsIAmImmutable(classOrInterfaceSymbol.BaseType)) ||
-				classOrInterfaceSymbol.Interfaces.Any(i => ImplementsIAmImmutable(i));
 		}
 
 		private static LocalizableString GetLocalizableString(string nameOfLocalizableResource)

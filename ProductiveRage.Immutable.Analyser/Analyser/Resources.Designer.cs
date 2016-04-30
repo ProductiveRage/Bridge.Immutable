@@ -125,6 +125,24 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has an empty constructor that may be used to populate the class.
+        /// </summary>
+        internal static string IAmImmutableAutoPopulatorAnalyserMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutableAutoPopulatorAnalyserMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IAmImmutable implementation may be auto-generated.
+        /// </summary>
+        internal static string IAmImmutableAutoPopulatorAnalyserTitle {
+            get {
+                return ResourceManager.GetString("IAmImmutableAutoPopulatorAnalyserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property &apos;{0}&apos; must have a setter since it has a getter and is on a class that implements IAmImmutable.
         /// </summary>
         internal static string IAmImmutablePropertiesMustHaveSettersMessageFormat {

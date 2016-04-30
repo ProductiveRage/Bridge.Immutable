@@ -138,6 +138,12 @@
   <data name="IAmImmutableAnalyserTitle" xml:space="preserve">
     <value>Properties on IAmImmutable must follow prescribed guidelines</value>
   </data>
+  <data name="IAmImmutableAutoPopulatorAnalyserMessageFormat" xml:space="preserve">
+    <value>IAmImmutable implementation '{0}' has an empty constructor that may be used to populate the class</value>
+  </data>
+  <data name="IAmImmutableAutoPopulatorAnalyserTitle" xml:space="preserve">
+    <value>IAmImmutable implementation may be auto-generated</value>
+  </data>
   <data name="IAmImmutablePropertiesMustHaveSettersMessageFormat" xml:space="preserve">
     <value>Property '{0}' must have a setter since it has a getter and is on a class that implements IAmImmutable</value>
   </data>
