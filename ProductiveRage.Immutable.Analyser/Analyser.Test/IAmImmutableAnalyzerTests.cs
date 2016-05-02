@@ -214,6 +214,40 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 				VerifyCSharpDiagnostic(testContent, expected);
 			}
+
+			/// <summary>
+			/// It doesn't make sense for a class to have a public setter if it's supposed to be immutable - clearly it's NOT immutable if data can be
+			/// changed! This is an easy mistake to make if writing the properties by hand (currently, Bridge doesn't support C# 6 and so a readonly /
+			/// get-only property can't be used, so the property must be written as { get; private set; } and not as { get; set; } - if the auto-
+			/// populator code fix is used then this should be a non-issue!)
+			/// </summary>
+			[TestMethod]
+			public void PublicSettersAreNotAllowed()
+			{
+				var testContent = @"
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public int Id { get; set; }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.MayNotHavePublicSettersRule.MessageFormat.ToString(), "Id"),
+					Severity = DiagnosticSeverity.Error,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 8, 29)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
 		}
 
 		[TestClass]

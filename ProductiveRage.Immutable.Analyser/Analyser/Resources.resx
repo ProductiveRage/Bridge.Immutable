@@ -147,6 +147,9 @@
   <data name="IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat" xml:space="preserve">
     <value>IAmImmutable implementations may not have non-readonly public fields (such as {0})</value>
   </data>
+  <data name="IAmImmutablePropertiesMayNotHavePublicSetterMessageFormat" xml:space="preserve">
+    <value>The setter on property '{0}' must be private as it is on a class that implements IAmImmutable</value>
+  </data>
   <data name="IAmImmutablePropertiesMustHaveSettersMessageFormat" xml:space="preserve">
     <value>Property '{0}' must have a setter since it has a getter and is on a class that implements IAmImmutable</value>
   </data>

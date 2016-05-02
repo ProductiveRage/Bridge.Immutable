@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -32,6 +33,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
 			GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
+		public static DiagnosticDescriptor MayNotHavePublicSettersRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutablePropertiesMayNotHavePublicSetterMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
@@ -115,6 +124,14 @@ namespace ProductiveRage.Immutable.Analyser
 						property.Identifier.Text
 					);
 				}
+				else if ((setterIfDefined != null) && IsPublic(property) && !IsPrivateOrProtected(setterIfDefined))
+				{
+					errorIfAny = Diagnostic.Create(
+						MayNotHavePublicSettersRule,
+						setterIfDefined.GetLocation(),
+						property.Identifier.Text
+					);
+				}
 				else
 					continue;
 				
@@ -126,6 +143,24 @@ namespace ProductiveRage.Immutable.Analyser
 					return;
 				context.ReportDiagnostic(errorIfAny);
 			}
+		}
+
+		private static bool IsPublic(PropertyDeclarationSyntax property)
+		{
+			if (property == null)
+				throw new ArgumentNullException(nameof(property));
+
+			return property.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PublicKeyword));
+		}
+
+		private static bool IsPrivateOrProtected(AccessorDeclarationSyntax propertyAccessor)
+		{
+			if (propertyAccessor == null)
+				throw new ArgumentNullException(nameof(propertyAccessor));
+
+			return
+				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PrivateKeyword)) ||
+				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ProtectedKeyword));
 		}
 
 		private static LocalizableString GetLocalizableString(string nameOfLocalizableResource)

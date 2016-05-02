@@ -152,6 +152,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The setter on property &apos;{0}&apos; must be private as it is on a class that implements IAmImmutable.
+        /// </summary>
+        internal static string IAmImmutablePropertiesMayNotHavePublicSetterMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutablePropertiesMayNotHavePublicSetterMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property &apos;{0}&apos; must have a setter since it has a getter and is on a class that implements IAmImmutable.
         /// </summary>
         internal static string IAmImmutablePropertiesMustHaveSettersMessageFormat {
