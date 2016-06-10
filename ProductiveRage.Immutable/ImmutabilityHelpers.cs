@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Bridge;
 
 namespace ProductiveRage.Immutable
@@ -233,7 +232,7 @@ namespace ProductiveRage.Immutable
 				GetFunctionSingleArgumentName(propertyIdentifier)
 			);
 			var expectedEndOfFunctionContent = "(); }";
-			var expectedFunctionFormatMatcher = new Regex(
+			var expectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
 				EscapeForReg(expectedStartOfFunctionContent).Replace(" ", "[ ]?").Replace(";", ";?") +
 				"(.*)" +
 				EscapeForReg(expectedEndOfFunctionContent).Replace(" ", "[ ]?").Replace(";", ";?")
@@ -313,8 +312,12 @@ namespace ProductiveRage.Immutable
 		}
 
 		// See http://stackoverflow.com/a/9924463 for more details
-		private readonly static Regex STRIP_COMMENTS = Script.Write<Regex>(@"/(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))/mg");
-		private readonly static Regex WHITESPACE_SEGMENTS = Script.Write<Regex>(@"/\s+/g");
+		private readonly static Bridge.Text.RegularExpressions.Regex STRIP_COMMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+			@"/(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))/mg"
+		);
+		private readonly static Bridge.Text.RegularExpressions.Regex WHITESPACE_SEGMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+			@"/\s+/g"
+		);
 		[IgnoreGeneric]
 		private static string GetNormalisedFunctionStringRepresentation<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
 		{
@@ -328,7 +331,9 @@ namespace ProductiveRage.Immutable
 		}
 
 		// Courtesy of http://stackoverflow.com/a/3561711
-		private readonly static Regex ESCAPE_FOR_REGEX = Script.Write<Regex>(@"/[-\/\\^$*+?.()|[\]{}]/g");
+		private readonly static Bridge.Text.RegularExpressions.Regex ESCAPE_FOR_REGEX = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+			@"/[-\/\\^$*+?.()|[\]{}]/g"
+		);
 		private static string EscapeForReg(string value)
 		{
 			if (value == null)
