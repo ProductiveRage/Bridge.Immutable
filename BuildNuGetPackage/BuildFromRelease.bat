@@ -1,4 +1,4 @@
-REM @echo off
+@echo off
 
 %~d0
 cd "%~p0"
