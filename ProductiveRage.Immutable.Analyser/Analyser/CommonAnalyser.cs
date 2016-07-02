@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,6 +17,15 @@ namespace ProductiveRage.Immutable.Analyser
 		{
 			if (propertyRetrieverArgument == null)
 				throw new ArgumentNullException(nameof(propertyRetrieverArgument));
+
+			// Most of the validation here ensures that an argument is passed is an explicit property getter lamba (eg. "_ => _.Name") but there
+			// are times where it would be helpful to be able to share a lambda reference (or pass one into a method that will then pass it to a
+			// With call) and so we don't want to ONLY support the explicit lambda formats. To enable that, there is a PropertyIdentifier<T, TProp>
+			// class that may be cast to a Func<T, TProp> which means that the lambda validation need not apply (note that the lambda validation
+			// WILL be applied to the PropertyIdentifier<T, TProp> initialisations, so validation may not be bypassed in this manner - it's just
+			// moved around a bit)
+			if (IsPropertyIdentifierReference(propertyRetrieverArgument.Expression, context))
+				return PropertyValidationResult.Ok;
 
 			SimpleNameSyntax targetNameIfSimpleLambdaExpression;
 			if (propertyRetrieverArgument.Expression.Kind() != SyntaxKind.SimpleLambdaExpression)
@@ -111,6 +121,31 @@ namespace ProductiveRage.Immutable.Analyser
 				(classOrInterfaceSymbol.ToString() == CommonAnalyser.AnalyserAssemblyName + ".IAmImmutable") ||
 				((classOrInterfaceSymbol.BaseType != null) && ImplementsIAmImmutable(classOrInterfaceSymbol.BaseType)) ||
 				classOrInterfaceSymbol.Interfaces.Any(i => ImplementsIAmImmutable(i));
+		}
+
+		private static bool IsPropertyIdentifierReference(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+		{
+			if (expression == null)
+				throw new ArgumentNullException(nameof(expression));
+
+			var typeOfExpression = context.SemanticModel.GetTypeInfo(expression).Type as INamedTypeSymbol;
+			if (typeOfExpression == null)
+				return false; // Most likely typeOfExpression is an IErrorTypeSymbol if it's not an INamedTypeSymbol
+
+			// We just need to confirm the type name, the namespace and the number of generic type parameters to confirm that it is the
+			// PropertyIdentifier type (we can't load the type into the analyser AND into the Bridge project being analysed, so we have
+			// to do this sort of guesswork - it's possible that someone could create their own PropertyIdentifier and put it in the
+			// same namespace, but they wouldn't be able to do it while having precisely two type params)
+			if (typeOfExpression.TypeArguments.Length != 2)
+				return false;
+			var typeNameSegments = new List<string> { typeOfExpression.Name };
+			var ns = typeOfExpression.ContainingNamespace;
+			while ((ns != null) && !string.IsNullOrWhiteSpace(ns.Name))
+			{
+				typeNameSegments.Insert(0, ns.Name);
+				ns = ns.ContainingNamespace;
+			}
+			return string.Join(".", typeNameSegments) == "ProductiveRage.Immutable.PropertyIdentifier";
 		}
 	}
 }

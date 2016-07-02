@@ -135,6 +135,18 @@
   <data name="CtorSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
   </data>
+  <data name="GetPropertyAnalyserTitle" xml:space="preserve">
+    <value>GetProperty should only be used in a particular manner</value>
+  </data>
+  <data name="GetPropertyBridgeAttributeMessageFormat" xml:space="preserve">
+    <value>GetProperty's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
+  </data>
+  <data name="GetPropertyDirectPropertyTargetAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>GetProperty's propertyRetriever lambda's target must be a direct access and may not include any casts or other indirection</value>
+  </data>
+  <data name="GetPropertySimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>GetProperty's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+  </data>
   <data name="IAmImmutableAnalyserTitle" xml:space="preserve">
     <value>Properties on IAmImmutable must follow prescribed guidelines</value>
   </data>

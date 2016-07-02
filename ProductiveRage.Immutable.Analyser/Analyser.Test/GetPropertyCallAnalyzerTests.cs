@@ -6,14 +6,8 @@ using TestHelper;
 namespace ProductiveRage.Immutable.Analyser.Test
 {
 	[TestClass]
-	public class WithCallAnalyzerTests : DiagnosticVerifier
+	public class GetPropertyCallAnalyzerTests : DiagnosticVerifier
 	{
-		[TestMethod]
-		public void BlankContent()
-		{
-			VerifyCSharpDiagnostic("");
-		}
-
 		[TestMethod]
 		public void IdealUsage()
 		{
@@ -24,9 +18,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => _.Id, id);
+							return x.GetProperty(_ => _.Id);
 						}
 					}
 
@@ -53,9 +47,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return ImmutabilityHelpers.With(x, _ => _.Id, id);
+							return ImmutabilityHelpers.GetProperty(x, _ => _.Id);
 						}
 					}
 
@@ -79,9 +73,10 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => id, id);
+							var id = 123;
+							return x.GetProperty(_ => id);
 						}
 					}
 
@@ -94,12 +89,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
+					new DiagnosticResultLocation("Test0.cs", 11, 29)
 				}
 			};
 
@@ -116,9 +111,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x, int id)
 						{
-							return x.With(_ => _.GetHashCode(), id);
+							return x.GetProperty(_ => _.GetHashCode());
 						}
 					}
 
@@ -131,12 +126,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
+					new DiagnosticResultLocation("Test0.cs", 10, 29)
 				}
 			};
 
@@ -153,9 +148,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => _.Id + 1, id);
+							return x.GetProperty(_ => _.Id + 1);
 						}
 					}
 
@@ -168,12 +163,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
+					new DiagnosticResultLocation("Test0.cs", 10, 29)
 				}
 			};
 
@@ -190,9 +185,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => _.Id, id);
+							return x.GetProperty(_ => _.Id);
 						}
 					}
 
@@ -205,12 +200,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
+					new DiagnosticResultLocation("Test0.cs", 10, 29)
 				}
 			};
 
@@ -228,9 +223,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => _.Id, id);
+							return x.GetProperty(_ => _.Id);
 						}
 					}
 
@@ -243,12 +238,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 11, 22)
+					new DiagnosticResultLocation("Test0.cs", 11, 29)
 				}
 			};
 
@@ -266,9 +261,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
 						{
-							return x.With(_ => _.Id, id);
+							return x.GetProperty(_ => _.Id);
 						}
 					}
 
@@ -281,59 +276,18 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.BridgeAttributeAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 11, 22)
+					new DiagnosticResultLocation("Test0.cs", 11, 29)
 				}
 			};
 
 			VerifyCSharpDiagnostic(testContent, expected);
 		}
 
-		/// <summary>
-		/// It is acceptable for classes to have gettable properties that don't have a setter if those properties are part of an explicit interface implementation.
-		/// So long as the properties are not valid for use with With or CtorSet, then this won't be a problem - the property would only be accessible for use in
-		/// a With or CtorSet call if the propertyRetriever target was cast to that particular interface and that is not allowed (the target in a property retriever
-		/// must be a very simple access, no recasts are allowed - see PropertyTargetMustNotBeManipulatedOrReCast).
-		/// </summary>
-		[TestMethod]
-		public void GettablePropertiesWithoutSettersAreAllowedOnExplicitInterfaceImplementations()
-		{
-			var testContent = @"
-				using ProductiveRage.Immutable;
-
-				namespace TestCase
-				{
-					public interface IHaveAnId
-					{
-						int Id { get; }
-					}
-
-					public class Something : IAmImmutable, IHaveAnId
-					{
-						private readonly int _id;
-						public Something(int id, string name)
-						{
-							_id = id;
-							this.CtorSet(_ => _.Name, name);
-						}
-						int IHaveAnId.Id { get { return _id; } }
-						public string Name { get; private set; }
-					}
-				}";
-
-			VerifyCSharpDiagnostic(testContent);
-		}
-
-		/// <summary>
-		/// The target of the propertyRetriever must be a simple property access (such as "_ => _.Name"), it is not acceptable for an indirect or recast target
-		/// to be used (such as "_ => ((ISomethingElse)_).Name"). This assumption is what allows for classes that implement IAmImmutable to also implement other
-		/// interfaces, which have get-only properties, as long as those base interfaces are explicitly implemented (see GettablePropertiesWithoutSettersAre-
-		/// AllowedOnExplicitInterfaceImplementations).
-		/// </summary>
 		[TestMethod]
 		public void PropertyTargetMustNotBeManipulatedOrReCast()
 		{
@@ -344,9 +298,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static Something WithId(Something x, int id)
+						public static PropertyIdentifier<Something, int> Test(Something x)
 						{
-							return x.With(_ => ((IHaveAnIdThatIsMutable)_).Id, id);
+							return x.GetProperty(_ => ((IHaveAnIdThatIsMutable)_).Id);
 						}
 					}
 
@@ -364,12 +318,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			var expected = new DiagnosticResult
 			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.IndirectTargetAccessorAccessRule.MessageFormat.ToString(),
+				Id = GetPropertyCallAnalyzer.DiagnosticId,
+				Message = GetPropertyCallAnalyzer.IndirectTargetAccessorAccessRule.MessageFormat.ToString(),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
+					new DiagnosticResultLocation("Test0.cs", 10, 29)
 				}
 			};
 
@@ -386,9 +340,8 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public static class Program
 					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x, PropertyIdentifier<SomethingWithAnId, int> propertyIdentifier)
 						{
-							var propertyIdentifier = x.GetProperty(_ => _.Id);
 							return x.With(propertyIdentifier, id);
 						}
 					}
@@ -403,10 +356,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
-
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
-			return new WithCallAnalyzer();
+			return new GetPropertyCallAnalyzer();
 		}
 	}
 }

@@ -116,6 +116,42 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to GetProperty should only be used in a particular manner.
+        /// </summary>
+        internal static string GetPropertyAnalyserTitle {
+            get {
+                return ResourceManager.GetString("GetPropertyAnalyserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetProperty&apos;s propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter.
+        /// </summary>
+        internal static string GetPropertyBridgeAttributeMessageFormat {
+            get {
+                return ResourceManager.GetString("GetPropertyBridgeAttributeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetProperty&apos;s propertyRetriever lambda&apos;s target must be a direct access and may not include any casts or other indirection.
+        /// </summary>
+        internal static string GetPropertyDirectPropertyTargetAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("GetPropertyDirectPropertyTargetAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetProperty&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        /// </summary>
+        internal static string GetPropertySimplePropertyAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("GetPropertySimplePropertyAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties on IAmImmutable must follow prescribed guidelines.
         /// </summary>
         internal static string IAmImmutableAnalyserTitle {

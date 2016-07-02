@@ -39,6 +39,7 @@
     <Compile Include="IAmImmutableAnalyzer.cs" />
     <Compile Include="IAmImmutableAutoPopulatorCodeFixProvider.cs" />
     <Compile Include="IAmImmutableAutoPopulatorAnalyzer.cs" />
+    <Compile Include="GetPropertyCallAnalyzer.cs" />
     <Compile Include="WithCallAnalyzer.cs" />
     <Compile Include="CtorSetCallAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -38,6 +38,25 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
+		/// There are analysers to ensure that the IAmImmutable.With extension method is only called with lambdas that match the required format (the lambdas must be a simple
+		/// property access for a property that has a getter and setter and that doesn't have any special translation rules applied via Bridge attributes). However, sometimes
+		/// it is useful to be able to pass references to these lambdas around, which is problematic with the analyser that checks the propertyIdentifier argument of all calls
+		/// to the With method. To workaround this, a property identifier reference may be created using this method and then passed into the With method - note that all of the
+		/// same validation rules are applied to GetProperty as to With, so it must still be a simple property-access lambda (but now a lambda reference may be created once and
+		/// shared or passed around).
+		/// </summary>
+		[IgnoreGeneric]
+		public static PropertyIdentifier<T, TPropertyValue> GetProperty<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier) where T : IAmImmutable
+		{
+			if (source == null)
+				throw new ArgumentNullException("source");
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException("propertyIdentifier");
+
+			return new PropertyIdentifier<T, TPropertyValue>(propertyIdentifier);
+		}
+
+		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a new value to set for that property - it will try to
 		/// clone the source reference and then change the value of the indicated property on the new reference. The same restrictions that apply to "CtorSet" apply here (in
 		/// terms of the propertyIdentifier having to be a simple property retrieval and of the getter / setter having to follow a naming convention), if they are not met then
