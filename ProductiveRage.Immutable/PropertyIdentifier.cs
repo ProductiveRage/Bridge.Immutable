@@ -1,4 +1,5 @@
 ﻿using System;
+using Bridge;
 
 namespace ProductiveRage.Immutable
 {
@@ -7,12 +8,13 @@ namespace ProductiveRage.Immutable
 	/// call will be bypassed if a PropertyIdentifier is provided (instead of a Func) because the same validation is applied to the GetProperty extension method, which
 	/// is the only way that an instance of this class may be created. 
 	/// </summary>
+	[IgnoreGeneric]
 	public sealed class PropertyIdentifier<T, TPropertyValue>
 	{
 		internal PropertyIdentifier(Func<T, TPropertyValue> method)
 		{
 			if (method == null)
-				throw new ArgumentNullException(nameof(method));
+				throw new ArgumentNullException("method");
 
 			Method = method;
 		}
@@ -20,7 +22,7 @@ namespace ProductiveRage.Immutable
 		public TPropertyValue Get(T value)
 		{
 			if (value == null)
-				throw new ArgumentNullException(nameof(value));
+				throw new ArgumentNullException("value");
 
 			return Method(value);
 		}
@@ -30,7 +32,7 @@ namespace ProductiveRage.Immutable
 		public static implicit operator Func<T, TPropertyValue>(PropertyIdentifier<T, TPropertyValue> source)
 		{
 			if (source == null)
-				throw new ArgumentNullException(nameof(source));
+				throw new ArgumentNullException("source");
 
 			return source.Method;
 		}
