@@ -69,23 +69,28 @@ namespace ProductiveRage.Immutable.Analyser
 			if (classDeclaration == null)
 				return;
 
+			bool? classImplementIAmImmutable = null; // Only bother looking this up (which is relatively expensive) if we know that we have to
 			var publicMutableFields = classDeclaration.ChildNodes()
 				.OfType<FieldDeclarationSyntax>()
 				.Where(field => field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PublicKeyword)))
 				.Where(field => !field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ReadOnlyKeyword)));
 			foreach (var publicMutableField in publicMutableFields)
 			{
-				context.ReportDiagnostic(Diagnostic.Create(
-					MayNotHavePublicNonReadOnlyFieldsRule,
-					publicMutableField.GetLocation(),
-					string.Join(", ", publicMutableField.Declaration.Variables.Select(variable => variable.Identifier.Text))
-				));
+				if (classImplementIAmImmutable == null)
+					classImplementIAmImmutable = CommonAnalyser.ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
+				if (classImplementIAmImmutable.Value)
+				{
+					context.ReportDiagnostic(Diagnostic.Create(
+						MayNotHavePublicNonReadOnlyFieldsRule,
+						publicMutableField.GetLocation(),
+						string.Join(", ", publicMutableField.Declaration.Variables.Select(variable => variable.Identifier.Text))
+					));
+				}
 			}
 
 			// This is likely to be the most expensive work (since it requires lookup of other symbols elsewhere in the solution, whereas the
 			// logic below only look at code in the current file) so only perform it when required (leave it as null until we absolutely need
 			// to know whether the current class implements IAmImmutable or not)
-			bool? classImplementIAmImmutable = null;
 			foreach (var property in classDeclaration.ChildNodes().OfType<PropertyDeclarationSyntax>())
 			{
 				if (property.ExplicitInterfaceSpecifier != null)

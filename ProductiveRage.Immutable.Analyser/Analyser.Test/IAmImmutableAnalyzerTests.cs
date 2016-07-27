@@ -22,8 +22,34 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		/// These tests are just to verify that the analysers ONLY target classes that implement IAmImmutable, the rules shouldn't be applied to other types
 		/// </summary>
 		[TestClass]
-		public class ForClassesThatDoNotImplementingIAmImmutable : IAmImmutableCallAnalyzerTester
+		public class ForClassesThatDoNotImplementIAmImmutable : IAmImmutableCallAnalyzerTester
 		{
+			[TestMethod]
+			public void DoNotComplainAboutMutableFieldsIfTheTypeDoesNotImplementIAmImmutable()
+			{
+				var testContent = @"
+					using Bridge;
+					using System.Collections.Generics;
+					using System.Linq;
+
+					namespace TestCase
+					{
+						public class Test
+						{
+							public static int GetCount(IEnumerable<int> values)
+							{
+								return values.Count();
+							}
+						}
+
+						public class SomethingWithAnId
+						{
+							public int Id;
+						}
+					}";
+				VerifyCSharpDiagnostic(testContent);
+			}
+
 			[TestMethod]
 			public void BridgeNameAttributeIsAllowedOnGetters()
 			{
