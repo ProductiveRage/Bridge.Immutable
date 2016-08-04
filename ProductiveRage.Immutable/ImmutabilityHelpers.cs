@@ -245,23 +245,39 @@ namespace ProductiveRage.Immutable
 			// and replaces any single whitespace characters (line returns, tabs, whatever) with a space and ensures that any runs of whitespace are reduced to a single
 			// character. We compare this (with a reg ex) to an expected format which is a string that is built up to match the first form. This is then tweaked to make
 			// the spaces and semi-colon optional (so that it can also match the minified form).
+			// 2016-08-04 DWR: There are some additional forms that should be supported; for example, Firefox may report "use strict" as part of the function content -
+			//   function (_) { "use strict"; return _.getName(); }
+			// .. and code coverage tools may inject other content before the getter is called -
+			//   function (_) { coverageFramework.track("MyClass.cs", 18); return _.getName(); }
+			// .. as such, the function format matching has been relaxed to allow a section to be ignored before the getter call. I contempled removing this entirely since
+			// there is an analyser to ensure that only valid properties are referenced in the C# code but this change seemed minor and could be useful if a project included
+			// IAmImmutable implementations that disabled the analyser (or that were built in VS2013 or earlier). If there are any further problems then I may reconsider.
 			var singleArgumentNameForPropertyIdentifier = GetFunctionSingleArgumentName(propertyIdentifier);
-			var expectedStartOfFunctionContent = string.Format(
-				"function ({0}) {{ return {0}.get",
-				GetFunctionSingleArgumentName(propertyIdentifier)
-			);
-			var expectedEndOfFunctionContent = "(); }";
+
+			// In case there are any new lines in the additional content that is supported before the getter call (see 2016-08-04 notes above), we need to look for "any
+			// character" that includes line returns and so use "[.\s\S]*" instead of just ".*" (see http://trentrichardson.com/2012/07/13/5-must-know-javascript-regex-tips/).
+			// It might be cleaner to use the C# RegEx which is fully supported by Bridge (but wasn't when this code was first written).
+			var functionName = GetFunctionSingleArgumentName(propertyIdentifier);
+			var regExSegments = new[] {
+				AsRegExSegment(string.Format(
+					"function ({0}) {{",
+					functionName
+				)),
+				AsRegExSegment(string.Format(
+					"return {0}.get",
+					functionName
+				)),
+				AsRegExSegment("(); }")
+			};
 			var expectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
-				EscapeForReg(expectedStartOfFunctionContent).Replace(" ", "[ ]?").Replace(";", ";?") +
-				"(.*)" +
-				EscapeForReg(expectedEndOfFunctionContent).Replace(" ", "[ ]?").Replace(";", ";?")
+				string.Join("([.\\s\\S]*)", regExSegments)
 			);
 			var propertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
 			var propertyNameMatchResults = expectedFunctionFormatMatcher.Exec(propertyIdentifierStringContent);
 			if (propertyNameMatchResults == null)
 				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.getName(); }\", rather than \"" + propertyIdentifierStringContent + "\"");
 
-			var propertyName = propertyNameMatchResults[1];
+			var propertyName = propertyNameMatchResults[propertyNameMatchResults.Length - 1];
 			var propertyGetterName = "get" + propertyName;
 			var propertySetterName = "set" + propertyName;
 			var hasFunctionWithExpectedSetterName = false;
@@ -295,6 +311,14 @@ namespace ProductiveRage.Immutable
 				if (isLocked)
 					throw new ArgumentException("This property has been locked - it should only be set within the constructor");
 			};
+		}
+
+		private static string AsRegExSegment(string value)
+		{
+			if (value == null)
+				throw new ArgumentNullException("value");
+
+			return EscapeForReg(value).Replace(" ", "[ ]?").Replace(";", ";?");
 		}
 
 		[IgnoreGeneric]
