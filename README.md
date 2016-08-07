@@ -70,11 +70,7 @@ The other extension method in the library is "With", which saves you from having
 
 When you start writing a class that implements IAmImmutable, you can save yourself some key presses by only writing out the class and an empty constructor - you will then see the quick actions light bulb (presuming you're using Visual Studio 2015 or later) appear beside the constructor. The menu will offer to "Populate class from constructor", which will fill out the body of the constructor and declare the public properties.
 
-![IAmImmutable class before auto-population](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix1.png)
-
 ![IAmImmutable class auto-population quick action option](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix2.png)
-
-![IAmImmutable class after auto-population](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix3.png)
 
 ## No more implicit nulls!
 
