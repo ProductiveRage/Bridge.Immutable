@@ -66,6 +66,16 @@ The other extension method in the library is "With", which saves you from having
 
 .. and use the same property-matching logic as "CtorSet" supports. (Note that the "With" extension method includes a check that the new value is different from the current value - if they're the same then "With" returns back the original reference; there's no point creating a new one in that case).
 
+### Pro-Tip: Type *even* less by relying on the library's code fix
+
+When you start writing a class that implements IAmImmutable, you can save yourself some key presses by only writing out the class and an empty constructor - you will then see the quick actions light bulb (presuming you're using Visual Studio 2015 or later) appear beside the constructor. The menu will offer to "Populate class from constructor", which will fill out the body of the constructor and declare the public properties.
+
+![IAmImmutable class before auto-population](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix1.png)
+
+![IAmImmutable class auto-population quick action option](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix2.png)
+
+![IAmImmutable class after auto-population](http://www.productiverage.com/Content/Images/ProductiveRage.Immutable.AutoFix3.png)
+
 ## No more implicit nulls!
 
 A decision that I made in writing this code was that I wanted to reduce the number of "if-null-throw" conditions that I had in my class constructors, so "CtorSet" applies that automatically. You may not pass any null argument into a constructor that will use "CtorSet" to set the property value.
