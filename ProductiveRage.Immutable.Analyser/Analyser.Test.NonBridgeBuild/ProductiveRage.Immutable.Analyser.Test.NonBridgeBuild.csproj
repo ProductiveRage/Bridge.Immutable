@@ -40,6 +40,9 @@
     <Compile Include="..\..\ProductiveRage.Immutable\ImmutabilityHelpers.cs">
       <Link>ImmutabilityHelpers.cs</Link>
     </Compile>
+    <Compile Include="..\..\ProductiveRage.Immutable\Optional.cs">
+      <Link>Optional.cs</Link>
+    </Compile>
     <Compile Include="..\..\ProductiveRage.Immutable\PropertyIdentifier.cs">
       <Link>PropertyIdentifier.cs</Link>
     </Compile>
