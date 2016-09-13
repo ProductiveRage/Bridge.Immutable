@@ -43,6 +43,7 @@
     <Compile Include="ImmutabilityHelpers.cs" />
     <Compile Include="IAmImmutable.cs" />
     <Compile Include="PropertyIdentifier.cs" />
+    <Compile Include="SetEnumerationExtensions.cs" />
     <Compile Include="Set.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
