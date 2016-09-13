@@ -1,4 +1,5 @@
 ﻿using System;
+using Bridge;
 
 namespace ProductiveRage.Immutable
 {
@@ -6,6 +7,7 @@ namespace ProductiveRage.Immutable
 	// null value the same as Missing, since I think this is more logical (I can't see why there should be a way to say that a value is
 	// missing AND a way to say that this value is not missing but that it is null; surely they indicate the same thing) and added
 	// equality logic.
+	[Immutable]
 	public struct Optional<T> : IEquatable<Optional<T>>
 	{
 		private readonly T value;
@@ -24,14 +26,11 @@ namespace ProductiveRage.Immutable
 			this.value = value;
 		}
 
-		// 2015-11-27 DWR: I used to use a private static "_missing" field that was then returned from this property - but that caused a
-		// problem with Bridge 1.10 (see http://forums.bridge.net/forum/bridge-net-pro/bugs/829) and it's not so important with structs
-		// (with a reference type you would want a single "Missing" reference but since structs are copied when passed around, it
-		// doesn't make much difference).
 		/// <summary>
 		/// Gets an instance that indicates the value was not specified.
 		/// </summary>
-		public static Optional<T> Missing { get { return new Optional<T>(default(T), false); } }
+		public static Optional<T> Missing { get { return _missing; } }
+		private static Optional<T> _missing = new Optional<T>(default(T), false);
 
 		/// <summary>
 		/// Gets a value indicating whether the value was specified.
@@ -53,7 +52,7 @@ namespace ProductiveRage.Immutable
 		/// </summary>
 		public static implicit operator Optional<T>(T value)
 		{
-			return new Optional<T>(value);
+			return (value == null) ? _missing : new Optional<T>(value);
 		}
 
 		public static bool operator ==(Optional<T> x, Optional<T> y)
