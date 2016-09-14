@@ -215,7 +215,7 @@ namespace ProductiveRage.Immutable
 			if (propertyIdentifier == null)
 				throw new ArgumentNullException("propertyIdentifier");
 
-			var cacheKey = new CacheKey(source.GetClassName(), GetFunctionStringRepresentation(propertyIdentifier));
+			var cacheKey = new CacheKey(source.GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
 
 			PropertySetter setter;
 			if (Cache.TryGetValue(cacheKey, out setter))
