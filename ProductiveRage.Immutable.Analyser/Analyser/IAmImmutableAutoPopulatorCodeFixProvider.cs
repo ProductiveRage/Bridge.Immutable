@@ -86,8 +86,9 @@ namespace ProductiveRage.Immutable.Analyser
 					)
 					.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
 					.AddAccessorListAccessors(
-						SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-						SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+						// 2016-09-21 DWR: Used to emit property getters of the form "{ get; private set; }" here since Bridge didn't support C# 6 syntax..
+						// but now it does (since 15.0) and so we can go for the stricter and more succinct "{ get; }" readonly auto-property format
+						SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
 					)
 				);
 

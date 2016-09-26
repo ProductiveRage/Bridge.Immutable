@@ -124,7 +124,7 @@
     <value>CtorSet's propertyRetriever lambda must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
   </data>
   <data name="CtorDirectPropertyTargetAccessorArgumentMessageFormat" xml:space="preserve">
-    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property</value>
   </data>
   <data name="CtorMayOnlyBeCalledWithConstructorMessageFormat" xml:space="preserve">
     <value>CtorSet should only be called within a constructor</value>
@@ -133,7 +133,7 @@
     <value>CtorSet must be a simple member access expression that targets "this" - it must be of the form this.CtorSet(..)</value>
   </data>
   <data name="CtorSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
-    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+    <value>CtorSet's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property</value>
   </data>
   <data name="GetPropertyAnalyserTitle" xml:space="preserve">
     <value>GetProperty should only be used in a particular manner</value>
@@ -145,7 +145,7 @@
     <value>GetProperty's propertyRetriever lambda's target must be a direct access and may not include any casts or other indirection</value>
   </data>
   <data name="GetPropertySimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
-    <value>GetProperty's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+    <value>GetProperty's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property</value>
   </data>
   <data name="IAmImmutableAnalyserTitle" xml:space="preserve">
     <value>Properties on IAmImmutable must follow prescribed guidelines</value>
@@ -178,6 +178,6 @@
     <value>With's propertyRetriever lambda's target must be a direct access and may not include any casts or other indirection</value>
   </data>
   <data name="WithSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
-    <value>With's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private)</value>
+    <value>With's propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property</value>
   </data>
 </root>

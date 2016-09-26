@@ -9,7 +9,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 	public class GetPropertyCallAnalyzerTests : DiagnosticVerifier
 	{
 		[TestMethod]
-		public void IdealUsage()
+		public void LegacyIdealUsage()
 		{
 			var testContent = @"
 				using ProductiveRage.Immutable;
@@ -28,6 +28,32 @@ namespace ProductiveRage.Immutable.Analyser.Test
 					{
 						public SomethingWithAnId(int id) { }
 						public int Id { get; private set; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		[TestMethod]
+		public void IdealUsage()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
+						{
+							return x.GetProperty(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						public int Id { get; }
 					}
 				}";
 
@@ -158,43 +184,6 @@ namespace ProductiveRage.Immutable.Analyser.Test
 					{
 						public SomethingWithAnId(int id) { }
 						public int Id { get; private set; }
-					}
-				}";
-
-			var expected = new DiagnosticResult
-			{
-				Id = GetPropertyCallAnalyzer.DiagnosticId,
-				Message = GetPropertyCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Error,
-				Locations = new[]
-				{
-					new DiagnosticResultLocation("Test0.cs", 10, 29)
-				}
-			};
-
-			VerifyCSharpDiagnostic(testContent, expected);
-		}
-
-		[TestMethod]
-		public void PropertyWithoutSetter()
-		{
-			var testContent = @"
-				using ProductiveRage.Immutable;
-
-				namespace TestCase
-				{
-					public static class Program
-					{
-						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x)
-						{
-							return x.GetProperty(_ => _.Id);
-						}
-					}
-
-					public class SomethingWithAnId : IAmImmutable
-					{
-						public SomethingWithAnId(int id) { }
-						public int Id { get { return 123; } }
 					}
 				}";
 

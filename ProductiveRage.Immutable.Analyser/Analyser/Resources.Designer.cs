@@ -80,7 +80,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property.
         /// </summary>
         internal static string CtorDirectPropertyTargetAccessorArgumentMessageFormat {
             get {
@@ -107,7 +107,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        ///   Looks up a localized string similar to CtorSet&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property.
         /// </summary>
         internal static string CtorSimplePropertyAccessorArgumentMessageFormat {
             get {
@@ -143,7 +143,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to GetProperty&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        ///   Looks up a localized string similar to GetProperty&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property.
         /// </summary>
         internal static string GetPropertySimplePropertyAccessorArgumentMessageFormat {
             get {
@@ -242,7 +242,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to With&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private).
+        ///   Looks up a localized string similar to With&apos;s propertyRetriever lambda must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property.
         /// </summary>
         internal static string WithSimplePropertyAccessorArgumentMessageFormat {
             get {

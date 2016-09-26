@@ -66,20 +66,21 @@ namespace ProductiveRage.Immutable.Analyser
 			if (HasDisallowedAttribute(property.GetMethod))
 				return PropertyValidationResult.GetterHasBridgeAttributes;
 
-			if (property.SetMethod == null)
-			{
-				// If the class is in a referenced assembly then we won't be able to inspect its setter if it's private (the metadata from
-				// that assembly will not declare the presence of the private setter).
-				// - There are analysers around IAmImmutable implementations that try to ensure that they only use properties that follow the
-				//   expected pattern (all gettable properties to also have setters and for neither the getter nor setter to have Bridge
-				//   attributes), however this is not a perfect solution since someone could write a library in VS 2013 (or any other
-				//   IDE that doesn't support analysers) that do not follow the rules and the consuming project would not find out
-				//   until runtime.. but I think that it's the best that we can do
-				if (property.Locations.Any(l => l.IsInMetadata))
-					return PropertyValidationResult.UnableToConfirmOrDeny;
-				return PropertyValidationResult.MissingSetter;
-			}
-			if (HasDisallowedAttribute(property.SetMethod))
+			// Note about looking for a setter: Previously, it was required that a property have a getter AND a setter, though it was fine for
+			// that setter to be private (in fact, it SHOULD be private if the containing class is not to have modifiable instances). This check
+			// had to be relaxed for properties in classes in referenced assemblies since the meta data for the external assembly would not declare
+			// the presence of a private setter. Now that (as of September 2016) Bridge supports C# 6 syntax, we also have to deal with the case
+			// where a setter may not be present in classes that we have access to the source code for at this point. We COULD do extra work to
+			// try to ensure that this only happens if the getter has no body (meaning that it must be a readonly auto-property, if it has a
+			// getter with no body and has no setter) but I think that it makes more sense to just skip the check altogether - it's skipped for
+			// referenced assemblies because the assumption is that the IAmImmutable analyser would pick up any invalid classes in the project
+			// project in which those classes were written, so we can do the same here (yes, someone could bypass that by disabling the analyser
+			// or using Visual Studio pre-2015 or one of any number of other means) but there are lots of ways to get around the type system if
+			// you're creative when considering a Bridge project since JavaScript is so malleable (so it doesn't seem worth going mad trying to
+			// make it impossible to circumvent, it's fine just to make it so that there's clearly some shenanigans going on and that everything
+			// will work if there isn't).
+
+			if ((property.SetMethod != null) && HasDisallowedAttribute(property.SetMethod))
 				return PropertyValidationResult.SetterHasBridgeAttributes;
 
 			return PropertyValidationResult.Ok;
@@ -94,7 +95,6 @@ namespace ProductiveRage.Immutable.Analyser
 			IndirectTargetAccess,
 
 			MissingGetter,
-			MissingSetter,
 			GetterHasBridgeAttributes,
 			SetterHasBridgeAttributes,
 

@@ -116,7 +116,6 @@ namespace ProductiveRage.Immutable.Analyser
 					return;
 
 				case CommonAnalyser.PropertyValidationResult.MissingGetter:
-				case CommonAnalyser.PropertyValidationResult.MissingSetter:
 					context.ReportDiagnostic(Diagnostic.Create(
 						SimplePropertyAccessorArgumentAccessRule,
 						propertyRetrieverArgument.GetLocation()

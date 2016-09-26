@@ -102,10 +102,12 @@ namespace ProductiveRage.Immutable.Analyser
 					continue;
 				}
 
+				// If property.ExpressionBody is an ArrowExpressionClauseSyntax then it's C# 6 syntax for a read-only property that returns
+				// a value (which is different to a readonly auto-property, which introduces a backing field behind the scenes, this syntax
+				// doesn't introduce a new backing field, it returns an expression). In this case, there won't be an AccessorList (it will
+				// be null).
 				Diagnostic errorIfAny;
-				var getterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
-				var setterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
-				if ((getterIfDefined != null) && (setterIfDefined == null))
+				if (property.ExpressionBody is ArrowExpressionClauseSyntax)
 				{
 					errorIfAny = Diagnostic.Create(
 						MustHaveSettersOnPropertiesWithGettersAccessRule,
@@ -113,32 +115,53 @@ namespace ProductiveRage.Immutable.Analyser
 						property.Identifier.Text
 					);
 				}
-				else if ((getterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, getterIfDefined)))
-				{
-					errorIfAny = Diagnostic.Create(
-						MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
-						getterIfDefined.GetLocation(),
-						property.Identifier.Text
-					);
-				}
-				else if ((setterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, setterIfDefined)))
-				{
-					errorIfAny = Diagnostic.Create(
-						MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
-						setterIfDefined.GetLocation(),
-						property.Identifier.Text
-					);
-				}
-				else if ((setterIfDefined != null) && IsPublic(property) && !IsPrivateOrProtected(setterIfDefined))
-				{
-					errorIfAny = Diagnostic.Create(
-						MayNotHavePublicSettersRule,
-						setterIfDefined.GetLocation(),
-						property.Identifier.Text
-					);
-				}
 				else
-					continue;
+				{
+					var getterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
+					var setterIfDefined = property.AccessorList.Accessors.FirstOrDefault(a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
+					if ((getterIfDefined != null) && (setterIfDefined == null))
+					{
+						// If getterIfDefined is non-null but has a null Body then it's an auto-property getter, in which case not having
+						// a setter is allowed since it means that it's a read-only auto-property (for which Bridge will create a property
+						// setter for in the JavaScript)
+						if (getterIfDefined.Body != null)
+						{
+							errorIfAny = Diagnostic.Create(
+								MustHaveSettersOnPropertiesWithGettersAccessRule,
+								property.GetLocation(),
+								property.Identifier.Text
+							);
+						}
+						else
+							continue;
+					}
+					else if ((getterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, getterIfDefined)))
+					{
+						errorIfAny = Diagnostic.Create(
+							MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
+							getterIfDefined.GetLocation(),
+							property.Identifier.Text
+						);
+					}
+					else if ((setterIfDefined != null) && CommonAnalyser.HasDisallowedAttribute(Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(context.SemanticModel, setterIfDefined)))
+					{
+						errorIfAny = Diagnostic.Create(
+							MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
+							setterIfDefined.GetLocation(),
+							property.Identifier.Text
+						);
+					}
+					else if ((setterIfDefined != null) && IsPublic(property) && !IsPrivateOrProtected(setterIfDefined))
+					{
+						errorIfAny = Diagnostic.Create(
+							MayNotHavePublicSettersRule,
+							setterIfDefined.GetLocation(),
+							property.Identifier.Text
+						);
+					}
+					else
+						continue;
+				}
 				
 				// Enountered a potential error if the current class implements IAmImmutable - so find out whether it does or not (if it
 				// doesn't then no further work is required and we can exit the entire process early)

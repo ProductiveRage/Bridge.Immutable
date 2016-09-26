@@ -95,6 +95,23 @@ namespace ProductiveRage.Immutable.Analyser.Test
 					}";
 				VerifyCSharpDiagnostic(testContent);
 			}
+
+			[TestMethod]
+			public void ExpressionBodiedMembersAreAcceptable()
+			{
+				var testContent = @"
+					namespace TestCase
+					{
+						public sealed class UnhandledDocumentFocus
+						{
+							public static UnhandledDocumentFocus Instance => _instance;
+							private static UnhandledDocumentFocus _instance = new UnhandledDocumentFocus();
+							private UnhandledDocumentFocus() { }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
 		}
 
 		[TestClass]
@@ -130,7 +147,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			}
 
 			[TestMethod]
-			public void SettersMustBeAlwaysBeDefined()
+			public void SettersMustBeAlwaysBeDefinedIfNotReadOnlyAutoProperty()
 			{
 				var testContent = @"
 					using ProductiveRage.Immutable;
@@ -208,6 +225,23 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				VerifyCSharpDiagnostic(testContent);
 			}
 
+			[TestMethod]
+			public void ReadOnlyAutoPropertiesAreSupported()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public int Id { get; }
+						}
+					}";
+				VerifyCSharpDiagnostic(testContent);
+			}
+
 			/// <summary>
 			/// If there's a refactor from mutable types (using fields rather than properties) then the mutable fields should be identified as invalid for
 			/// an IAmImmutable implementation (there could feasibly be an argument that private mutable fields have a purpose but never public fields)
@@ -245,7 +279,8 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			/// It doesn't make sense for a class to have a public setter if it's supposed to be immutable - clearly it's NOT immutable if data can be
 			/// changed! This is an easy mistake to make if writing the properties by hand (currently, Bridge doesn't support C# 6 and so a readonly /
 			/// get-only property can't be used, so the property must be written as { get; private set; } and not as { get; set; } - if the auto-
-			/// populator code fix is used then this should be a non-issue!)
+			/// populator code fix is used then this should be a non-issue!) 2016-09-21 DWR: C# 6 *is* supported now, since Bridge 15.0, so this
+			/// mistake will hopefully be less common since the preferable readonly auto-property format may be used.
 			/// </summary>
 			[TestMethod]
 			public void PublicSettersAreNotAllowed()
@@ -310,7 +345,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			}
 
 			[TestMethod]
-			public void SettersMustBeAlwaysBeDefined()
+			public void SettersMustBeAlwaysBeDefinedIfNotReadOnlyAutoProperty()
 			{
 				var testContent = @"
 					using ProductiveRage.Immutable;
@@ -362,6 +397,125 @@ namespace ProductiveRage.Immutable.Analyser.Test
 					Locations = new[]
 					{
 						new DiagnosticResultLocation("Test0.cs", 9, 29)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+
+			[TestMethod]
+			public void ReadOnlyAutoPropertiesAreSupported()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : ImmutableBase
+						{
+							public int Id { get; }
+						}
+						public abstract class ImmutableBase : IAmImmutable { }
+					}";
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			/// <summary>
+			/// If there's a refactor from mutable types (using fields rather than properties) then the mutable fields should be identified as invalid for
+			/// an IAmImmutable implementation (there could feasibly be an argument that private mutable fields have a purpose but never public fields)
+			/// </summary>
+			[TestMethod]
+			public void PublicMutableFieldsAreNotAllowed()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : ImmutableBase
+						{
+							public int Id;
+						}
+						public abstract class ImmutableBase : IAmImmutable { }
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.MayNotHavePublicNonReadOnlyFieldsRule.MessageFormat.ToString(), "Id"),
+					Severity = DiagnosticSeverity.Error,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+			/// <summary>
+			/// It doesn't make sense for a class to have a public setter if it's supposed to be immutable - clearly it's NOT immutable if data can be
+			/// changed! This is an easy mistake to make if writing the properties by hand (currently, Bridge doesn't support C# 6 and so a readonly /
+			/// get-only property can't be used, so the property must be written as { get; private set; } and not as { get; set; } - if the auto-
+			/// populator code fix is used then this should be a non-issue!) 2016-09-21 DWR: C# 6 *is* supported now, since Bridge 15.0, so this
+			/// mistake will hopefully be less common since the preferable readonly auto-property format may be used.
+			/// </summary>
+			[TestMethod]
+			public void PublicSettersAreNotAllowed()
+			{
+				var testContent = @"
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : ImmutableBase
+						{
+							public int Id { get; set; }
+						}
+						public abstract class ImmutableBase : IAmImmutable { }
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.MayNotHavePublicSettersRule.MessageFormat.ToString(), "Id"),
+					Severity = DiagnosticSeverity.Error,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 8, 29)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+			[TestMethod]
+			public void ExpressionBodiedMembersAreNotAllowedSinceThereWillBeNoSetter()
+			{
+				var testContent = @"
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public sealed class UnhandledDocumentFocus : IAmImmutable
+						{
+							public static UnhandledDocumentFocus Instance => _instance;
+							private static UnhandledDocumentFocus _instance = new UnhandledDocumentFocus();
+							private UnhandledDocumentFocus() { }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.MustHaveSettersOnPropertiesWithGettersAccessRule.MessageFormat.ToString(), "Instance"),
+					Severity = DiagnosticSeverity.Error,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 8, 8)
 					}
 				};
 

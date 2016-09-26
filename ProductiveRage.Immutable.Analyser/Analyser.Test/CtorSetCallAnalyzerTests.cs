@@ -15,7 +15,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		[TestMethod]
-		public void IdealUsage()
+		public void LegacyIdealUsage()
 		{
 			var testContent = @"
 				using ProductiveRage.Immutable;
@@ -31,6 +31,29 @@ namespace ProductiveRage.Immutable.Analyser.Test
 						}
 						public int Id { get; private set; }
 						public NameDetails Name { get; private set; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		[TestMethod]
+		public void IdealUsage()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class PersonDetails : IAmImmutable
+					{
+						public PersonDetails(int id, NameDetails name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+						public int Id { get; }
+						public NameDetails Name { get; }
 					}
 				}";
 
@@ -213,40 +236,6 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 10, 21)
-				}
-			};
-
-			VerifyCSharpDiagnostic(testContent, expected);
-		}
-
-		[TestMethod]
-		public void PropertyWithoutSetter()
-		{
-			var testContent = @"
-				using ProductiveRage.Immutable;
-
-				namespace TestCase
-				{
-					public class PersonDetails : IAmImmutable
-					{
-						public PersonDetails(int id, string name)
-						{
-							this.CtorSet(_ => _.Id, id);
-							this.CtorSet(_ => _.Name, name);
-						}
-						public int Id { get; private set; }
-						public string Name { get { return ""; } }
-					}
-				}";
-
-			var expected = new DiagnosticResult
-			{
-				Id = CtorSetCallAnalyzer.DiagnosticId,
-				Message = CtorSetCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Error,
-				Locations = new[]
-				{
-					new DiagnosticResultLocation("Test0.cs", 11, 21)
 				}
 			};
 

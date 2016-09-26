@@ -181,43 +181,6 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		[TestMethod]
-		public void PropertyWithoutSetter()
-		{
-			var testContent = @"
-				using ProductiveRage.Immutable;
-
-				namespace TestCase
-				{
-					public static class Program
-					{
-						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
-						{
-							return x.With(_ => _.Id, id);
-						}
-					}
-
-					public class SomethingWithAnId : IAmImmutable
-					{
-						public SomethingWithAnId(int id) { }
-						public int Id { get { return 123; } }
-					}
-				}";
-
-			var expected = new DiagnosticResult
-			{
-				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
-				Severity = DiagnosticSeverity.Error,
-				Locations = new[]
-				{
-					new DiagnosticResultLocation("Test0.cs", 10, 22)
-				}
-			};
-
-			VerifyCSharpDiagnostic(testContent, expected);
-		}
-
-		[TestMethod]
 		public void PropertyWithGetterWithBridgeAttribute()
 		{
 			var testContent = @"
