@@ -83,6 +83,7 @@ namespace ProductiveRage.Immutable
 
 			var update = Clone(source);
 			setter(update, value, ignoreAnyExistingLock: true);
+			ValidateAfterUpdateIfValidateMethodDefined(update);
 			return update;
 		}
 
@@ -138,6 +139,7 @@ namespace ProductiveRage.Immutable
 
 				var update = Clone(source);
 				setter(update, value, ignoreAnyExistingLock: true);
+				ValidateAfterUpdateIfValidateMethodDefined(update);
 				return update;
 			};
 		}
@@ -185,6 +187,7 @@ namespace ProductiveRage.Immutable
 
 				var update = Clone(source);
 				setter(update, newValue, ignoreAnyExistingLock: true);
+				ValidateAfterUpdateIfValidateMethodDefined(update);
 				return update;
 			};
 		}
@@ -376,6 +379,23 @@ namespace ProductiveRage.Immutable
 				throw new ArgumentNullException("propertyIdentifier");
 
 			return Script.Write<int>("propertyIdentifier.length");
+		}
+
+		/// <summary>
+		/// If there is an argument-less Validate method on the instance then call that (this is to make up for the fact that the constructor is not called after properties are updated)
+		/// </summary>
+		[IgnoreGeneric]
+		private static void ValidateAfterUpdateIfValidateMethodDefined<T>(T source)
+		{
+			if (source == null)
+				throw new ArgumentNullException("source");
+
+			/*@
+			var validate = source.validate;
+			if (validate && (typeof(validate) === "function") && (validate.length === 0)) {
+				validate.apply(source);
+			}
+			*/
 		}
 
 		[IgnoreGeneric]
