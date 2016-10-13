@@ -88,6 +88,41 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
+		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a lambda that will receive the current value and return
+		/// a new one. It will try to clone the source reference and then change the value of the indicated property on the new reference. The same restrictions that apply to
+		/// "CtorSet" apply here (in terms of the propertyIdentifier having to be a simple property retrieval and of the getter / setter having to follow a naming convention),
+		/// if they are not met then an exception will be thrown. An exception will also be thrown if the valueUpdater delegate returns null - if the property must be nullable
+		/// then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value). Note
+		/// that if the new property value is the same as the current property value on the source reference then no clone will be performed and the source reference will be
+		/// passed straight back out.
+		[IgnoreGeneric]
+		public static T With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, Func<TPropertyValue, TPropertyValue> valueUpdater) where T : IAmImmutable
+		{
+			if (source == null)
+				throw new ArgumentNullException("source");
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException("propertyIdentifier");
+			if (valueUpdater == null)
+				throw new ArgumentNullException("valueUpdater");
+
+			// Try to get the setter delegate first since this will validate the propertyIdentifier
+			var setter = GetSetter(source, propertyIdentifier);
+
+			// Ensure that the value has actually changed, otherwise return the source reference straight back out
+			var currentValue = propertyIdentifier(source);
+			var newValue = valueUpdater(currentValue);
+			if (newValue == null)
+				throw new Exception("The specified valueUpdater returned null, which is invalid (if this is a property that may sometimes not have a value then it should be of type Optional)");
+			if (newValue.Equals(currentValue))
+				return source;
+
+			var update = Clone(source);
+			setter(update, newValue, ignoreAnyExistingLock: true);
+			ValidateAfterUpdateIfValidateMethodDefined(update);
+			return update;
+		}
+
+		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type that is a Set, an index that must exist within the current
 		/// value for the specified property on the source reference and a new value to set for that property - it will try to clone the source reference and then change the
 		/// value of the element at the specified index on the indicated property on the new reference. The same restrictions that apply to "CtorSet" apply here (in terms of
