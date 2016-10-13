@@ -215,6 +215,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to When new IAmImmutable instances are created via &quot;With&quot; calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a &quot;Validate&quot; method to the class and call it at the end of the constructor, it will also be called whenever &quot;With&quot;creates a new instance. The &quot;Validate&quot; method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private)..
+        /// </summary>
+        internal static string IAmImmutableValidationShouldNotBePerformedInConstructor {
+            get {
+                return ResourceManager.GetString("IAmImmutableValidationShouldNotBePerformedInConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to With should only be used in a particular manner.
         /// </summary>
         internal static string WithAnalyserTitle {

@@ -309,6 +309,159 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 				VerifyCSharpDiagnostic(testContent, expected);
 			}
+
+			[TestMethod]
+			public void ConstructorShouldNotPerformValidationSinceItWillNotBeCalledByWithUpdates()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id)
+							{
+								// I only like positives
+								if (id <= 0)
+									throw new ArgumentOutOfRangeException(""id must be a positive value"");
+
+								this.CtorSet(_ => _.Id, id);
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = IAmImmutableAnalyzer.ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod.MessageFormat.ToString(),
+					Severity = DiagnosticSeverity.Warning,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+			[TestMethod]
+			public void IfParameterValidationIsRequiredThenItMayBePutIntoSeparateValidateMethodAndCalledAtTheEndOfTheConstructor()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id)
+							{
+								this.CtorSet(_ => _.Id, id);
+								Validate();
+							}
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			[TestMethod]
+			public void IfValidateMethodIsCalledFromConstructorThenItMustBeTheFinalLine()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id)
+							{
+								Validate();
+								this.CtorSet(_ => _.Id, id);
+							}
+
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = IAmImmutableAnalyzer.ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod.MessageFormat.ToString(),
+					Severity = DiagnosticSeverity.Warning,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+			[TestMethod]
+			public void ValidateMethodMayNotHaveAnyBridgeAttributesSinceItIsPresumedToHaveKnownNameAtRuntime()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id)
+							{
+								this.CtorSet(_ => _.Id, id);
+								Validate();
+							}
+
+							[Name(""validator"")]
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = IAmImmutableAnalyzer.ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod.MessageFormat.ToString(),
+					Severity = DiagnosticSeverity.Warning,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
 		}
 
 		[TestClass]

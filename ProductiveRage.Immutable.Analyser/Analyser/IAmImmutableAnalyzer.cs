@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -45,6 +46,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutableValidationShouldNotBePerformedInConstructor)),
+			Category,
+			DiagnosticSeverity.Warning,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -53,7 +62,8 @@ namespace ProductiveRage.Immutable.Analyser
 				return ImmutableArray.Create(
 					MayNotHavePublicNonReadOnlyFieldsRule,
 					MustHaveSettersOnPropertiesWithGettersAccessRule,
-					MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule
+					MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
+					ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod
 				);
 			}
 		}
@@ -69,15 +79,14 @@ namespace ProductiveRage.Immutable.Analyser
 			if (classDeclaration == null)
 				return;
 
-			bool? classImplementIAmImmutable = null; // Only bother looking this up (which is relatively expensive) if we know that we have to
+			// Only bother looking this up (which is relatively expensive) if we know that we have to
+			var classImplementIAmImmutable = new Lazy<bool>(() => CommonAnalyser.ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration)));
 			var publicMutableFields = classDeclaration.ChildNodes()
 				.OfType<FieldDeclarationSyntax>()
 				.Where(field => field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PublicKeyword)))
 				.Where(field => !field.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ReadOnlyKeyword)));
 			foreach (var publicMutableField in publicMutableFields)
 			{
-				if (classImplementIAmImmutable == null)
-					classImplementIAmImmutable = CommonAnalyser.ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
 				if (classImplementIAmImmutable.Value)
 				{
 					context.ReportDiagnostic(Diagnostic.Create(
@@ -85,6 +94,54 @@ namespace ProductiveRage.Immutable.Analyser
 						publicMutableField.GetLocation(),
 						string.Join(", ", publicMutableField.Declaration.Variables.Select(variable => variable.Identifier.Text))
 					));
+				}
+			}
+
+			// When the "With" methods updates create new instances, the existing instance is cloned and the target property updated - the constructor is not called on the
+			// new instance, which means that any validation in there is bypassed. I don't think that there's sufficient information available at runtime (in JavaScript) to
+			// create a new instance by calling the constructor instead of using this approach so, instead, validation is not allowed in the constructor - only "CtorSet"
+			// calls are acceptable with an optional "Validate" call that may appear at the end of the constructor. If this "Validate" method exists then it will be called
+			// after each "With" call in order to allow validation to be performed after each property update. The "Validate" method must have no parameters but may have
+			// any accessibility (private probably makes most sense).
+			var constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable = new List<ConstructorDeclarationSyntax>();
+			var instanceConstructors = classDeclaration.ChildNodes()
+				.OfType<ConstructorDeclarationSyntax>()
+				.Where(constructor => (constructor.Body != null)) // If the code is in an invalid state then the Body property might be null - safe to ignore
+				.Where(constructor => !constructor.Modifiers.Any(modifier => modifier.Kind() == SyntaxKind.StaticKeyword));
+			foreach (var instanceConstructor in instanceConstructors)
+			{
+				var constructorShouldUseValidateMethodIfClassImplementsIAmImmutable = false;
+				var constructorChildNodes = instanceConstructor.Body.ChildNodes().ToArray();
+				foreach (var node in constructorChildNodes.Select((childNode, i) => new { Node = childNode, IsLastNode = i == (constructorChildNodes.Length - 1) }))
+				{
+					var expressionStatement = node.Node as ExpressionStatementSyntax;
+					if (expressionStatement == null)
+					{
+						constructorShouldUseValidateMethodIfClassImplementsIAmImmutable = true;
+						break;
+					}
+					var invocation = expressionStatement.Expression as InvocationExpressionSyntax;
+					if (invocation != null)
+					{
+						if (InvocationIsCtorSetCall(invocation, context) || (node.IsLastNode && InvocationIsAllowableValidateCall(invocation, context)))
+							continue;
+					}
+					constructorShouldUseValidateMethodIfClassImplementsIAmImmutable = true;
+				}
+				if (constructorShouldUseValidateMethodIfClassImplementsIAmImmutable)
+					constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable.Add(instanceConstructor);
+			}
+			if (constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable.Any())
+			{
+				if (classImplementIAmImmutable.Value)
+				{
+					foreach (var constructorThatShouldUseValidateMethod in constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable)
+					{
+						context.ReportDiagnostic(Diagnostic.Create(
+							ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod,
+							constructorThatShouldUseValidateMethod.GetLocation()
+						));
+					}
 				}
 			}
 
@@ -165,8 +222,6 @@ namespace ProductiveRage.Immutable.Analyser
 				
 				// Enountered a potential error if the current class implements IAmImmutable - so find out whether it does or not (if it
 				// doesn't then no further work is required and we can exit the entire process early)
-				if (classImplementIAmImmutable == null)
-					classImplementIAmImmutable = CommonAnalyser.ImplementsIAmImmutable(context.SemanticModel.GetDeclaredSymbol(classDeclaration));
 				if (!classImplementIAmImmutable.Value)
 					return;
 				context.ReportDiagnostic(errorIfAny);
@@ -189,6 +244,39 @@ namespace ProductiveRage.Immutable.Analyser
 			return
 				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PrivateKeyword)) ||
 				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ProtectedKeyword));
+		}
+
+		private static bool InvocationIsCtorSetCall(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
+		{
+			if (invocation == null)
+				throw new ArgumentNullException(nameof(invocation));
+
+			var lastExpressionToken = invocation.Expression.GetLastToken();
+			if ((lastExpressionToken == null) || (lastExpressionToken.Text != "CtorSet"))
+				return false;
+
+			// Note: Don't need to do any work to ensure that this is a VALID "CtorSet" call since the CtorSetCallAnalyzer will do that
+			var ctorSetMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
+			return
+				(ctorSetMethod != null) &&
+				(ctorSetMethod.ContainingAssembly != null) &&
+				(ctorSetMethod.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
+		}
+
+		private static bool InvocationIsAllowableValidateCall(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
+		{
+			if (invocation == null)
+				throw new ArgumentNullException(nameof(invocation));
+
+			var lastExpressionToken = invocation.Expression.GetLastToken();
+			if ((lastExpressionToken == null) || (lastExpressionToken.Text != "Validate"))
+				return false;
+
+			var validateMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
+			return
+				(validateMethod != null) &&
+				!validateMethod.Parameters.Any() &&
+				!CommonAnalyser.HasDisallowedAttribute(validateMethod);
 		}
 
 		private static LocalizableString GetLocalizableString(string nameOfLocalizableResource)
