@@ -95,6 +95,7 @@ namespace ProductiveRage.Immutable
 		/// then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value). Note
 		/// that if the new property value is the same as the current property value on the source reference then no clone will be performed and the source reference will be
 		/// passed straight back out.
+		/// </summary>
 		[IgnoreGeneric]
 		public static T With<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, Func<TPropertyValue, TPropertyValue> valueUpdater) where T : IAmImmutable
 		{
@@ -295,42 +296,57 @@ namespace ProductiveRage.Immutable
 			// In case there are any new lines in the additional content that is supported before the getter call (see 2016-08-04 notes above), we need to look for "any
 			// character" that includes line returns and so use "[.\s\S]*" instead of just ".*" (see http://trentrichardson.com/2012/07/13/5-must-know-javascript-regex-tips/).
 			// It might be cleaner to use the C# RegEx which is fully supported by Bridge (but wasn't when this code was first written).
-			var functionName = GetFunctionSingleArgumentName(propertyIdentifier);
+			var argumentName = GetFunctionSingleArgumentName(propertyIdentifier);
 
 			// If an IAmImmutable type is also decorated with [ObjectLiteral] then instances won't actually have real getter and setter methods, they will just have raw
 			// properties. There are some hoops to jump through to combine IAmImmutable and [ObjectLiteral] (the constructor won't be called and so CtorSet can't be used
 			// to initialise the instance) but if this combination is required then the "With" method may still be used by identifying whether the current object is a
 			// "plain object" and working directly on the property value if so.
 			var isObjectLiteral = Script.Write<bool>("Bridge.isPlainObject(source)");
-			string[] regExSegments;
 			if (isObjectLiteral)
 			{
-				regExSegments = new[] {
+				var objectLiteralRegExSegments = new[] {
 					AsRegExSegment(string.Format(
 						"function ({0}) {{",
-						functionName
+						argumentName
 					)),
 					AsRegExSegment(string.Format(
 						"return {0}.",
-						functionName
+						argumentName
 					)),
 					AsRegExSegment("; }")
 				};
-			}
-			else
-			{
-				regExSegments = new[] {
-					AsRegExSegment(string.Format(
-						"function ({0}) {{",
-						functionName
-					)),
-					AsRegExSegment(string.Format(
-						"return {0}.get",
-						functionName
-					)),
-					AsRegExSegment("(); }")
+				var objectLiteralExpectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
+					string.Join("([.\\s\\S]*?)", objectLiteralRegExSegments)
+				);
+				var objectLiteralPropertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
+				var objectLiteralPropertyNameMatchResults = objectLiteralExpectedFunctionFormatMatcher.Exec(objectLiteralPropertyIdentifierStringContent);
+				if (objectLiteralPropertyNameMatchResults == null)
+					throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property access for an [ObjectLiteral], such as \"function(_) { return _.name; }\", rather than \"" + objectLiteralPropertyIdentifierStringContent + "\"");
+
+				// If the target is an [ObjectLiteral] then just set the property name on the target, don't try to call a setter (since it won't be defined)
+				var objectLiteralPropertyName = objectLiteralPropertyNameMatchResults[objectLiteralPropertyNameMatchResults.Length - 1];
+				return (target, newValue, ignoreAnyExistingLock) =>
+				{
+					Script.Write("target[{0}] = {1};", objectLiteralPropertyName, newValue);
 				};
 			}
+
+			// 2016-10-21 DWR: Split out "return {0}.get" into two segments since Bridge uses aliases for properties if a class is cast to an interface and an interface
+			// property is being specified for update (eg. "function (_) { return _.Example$IHaveName$getName(); }" instead of function (_) { return _.getName(); }").
+			// If the property is being accessed directly (and not via an interface) then there will be type alias prefix.
+			var regExSegments = new[] {
+				AsRegExSegment(string.Format(
+					"function ({0}) {{",
+					argumentName
+				)),
+				AsRegExSegment(string.Format(
+					"return {0}.",
+					argumentName
+				)),
+				AsRegExSegment("get"),
+				AsRegExSegment("(); }")
+			};
 			var expectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
 				string.Join("([.\\s\\S]*?)", regExSegments)
 			);
@@ -339,18 +355,10 @@ namespace ProductiveRage.Immutable
 			if (propertyNameMatchResults == null)
 				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.getName(); }\", rather than \"" + propertyIdentifierStringContent + "\"");
 
+			var typeAliasPrefix = propertyNameMatchResults[propertyNameMatchResults.Length - 2];
 			var propertyName = propertyNameMatchResults[propertyNameMatchResults.Length - 1];
-			if (isObjectLiteral)
-			{
-				// If the target is an [ObjectLiteral] then just set the property name on the target, don't try to call a setter (since it won't be defined)
-				return (target, newValue, ignoreAnyExistingLock) =>
-				{
-					Script.Write("target[{0}] = {1};", propertyName, newValue);
-				};
-			}
-
-			var propertyGetterName = "get" + propertyName;
-			var propertySetterName = "set" + propertyName;
+			var propertyGetterName = typeAliasPrefix + "get" + propertyName;
+			var propertySetterName = typeAliasPrefix + "set" + propertyName;
 			var hasFunctionWithExpectedSetterName = false;
 			var hasExpectedSetter = false;
 			/*@var setter = source[propertySetterName];
