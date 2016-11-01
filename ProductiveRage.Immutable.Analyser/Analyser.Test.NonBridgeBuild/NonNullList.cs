@@ -5,14 +5,14 @@ using Bridge;
 
 namespace ProductiveRage.Immutable
 {
-	public static class Set
+	public static class NonNullList
 	{
 		/// <summary>
 		/// This will throw an exception for any null references in the values parameters - if nulls may be required then the type parameter should be an Optional
 		/// </summary>
-		public static Set<T> Of<T>(params T[] values)
+		public static NonNullList<T> Of<T>(params T[] values)
 		{
-			var list = Set<T>.Empty;
+			var list = NonNullList<T>.Empty;
 			if (values != null)
 			{
 				for (var i = values.Length - 1; i >= 0; i--)
@@ -27,13 +27,13 @@ namespace ProductiveRage.Immutable
 		}
 	}
 
-	public sealed class Set<T> : IEnumerable<T>
+	public sealed class NonNullList<T> : IEnumerable<T>
 	{
-		private readonly static Set<T> _empty = new Set<T>(null);
-		public static Set<T> Empty { get { return _empty; } }
+		private readonly static NonNullList<T> _empty = new NonNullList<T>(null);
+		public static NonNullList<T> Empty { get { return _empty; } }
 
 		private readonly Node _headIfAny;
-		private Set(Node headIfAny)
+		private NonNullList(Node headIfAny)
 		{
 			_headIfAny = headIfAny;
 		}
@@ -45,15 +45,15 @@ namespace ProductiveRage.Immutable
 		/// Due to the internal structure of this class, this is the cheapest way to add an item to a set. Null references are not allowed (an exception will be thrown),
 		/// if you require values that may be null then the type parameter should be an Optional.
 		/// </summary>
-		public Set<T> Insert(T item)
+		public NonNullList<T> Insert(T item)
 		{
 			if (item == null)
 				throw new ArgumentNullException("item");
 
 			if (_headIfAny == null)
-				return new Set<T>(new Node { Count = 1, Item = item, NextIfAny = null });
+				return new NonNullList<T>(new Node { Count = 1, Item = item, NextIfAny = null });
 
-			return new Set<T>(new Node
+			return new NonNullList<T>(new Node
 			{
 				Count = _headIfAny.Count + 1,
 				Item = item,
@@ -66,7 +66,7 @@ namespace ProductiveRage.Immutable
 		/// the end, which this function does).  Null references are not allowed (an exception will be thrown), if you require values that may be null then the type parameter
 		/// should be an Optional.
 		/// </summary>
-		public Set<T> Add(T item)
+		public NonNullList<T> Add(T item)
 		{
 			if (item == null)
 				throw new ArgumentNullException("item");
@@ -89,7 +89,7 @@ namespace ProductiveRage.Immutable
 					NextIfAny = newHead
 				};
 			}
-			return new Set<T>(newHead);
+			return new NonNullList<T>(newHead);
 		}
 
 		/// <summary>
@@ -114,7 +114,7 @@ namespace ProductiveRage.Immutable
 		/// This will throw an exception for an invalid index value or for a null value reference. This data type will not store null references - if nulls may be required
 		/// then the type parameter should be an Optional.
 		/// </summary>
-		public Set<T> SetValue(uint index, T value)
+		public NonNullList<T> SetValue(uint index, T value)
 		{
 			if (index >= Count)
 				throw new ArgumentOutOfRangeException("index");
@@ -146,7 +146,7 @@ namespace ProductiveRage.Immutable
 					NextIfAny = newNode
 				};
 			}
-			return new Set<T>(newNode);
+			return new NonNullList<T>(newNode);
 		}
 
 		/// <summary>
@@ -173,7 +173,7 @@ namespace ProductiveRage.Immutable
 		/// return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If the
 		/// set is empty or if the updater returns the same reference for every item then no change is required and the current Set reference will be returned unaltered.
 		/// </summary>
-		public Set<T> UpdateAll(Func<T, T> updater)
+		public NonNullList<T> UpdateAll(Func<T, T> updater)
 		{
 			if (updater == null)
 				throw new ArgumentNullException("updater");
@@ -187,7 +187,7 @@ namespace ProductiveRage.Immutable
 		/// should be an Optional). If the set is empty, if the filter does not match any items or if the updater returns the same reference for every matched item then
 		/// no change is required and the current Set reference will be returned unaltered.
 		/// </summary>
-		public Set<T> Update(Func<T, T> updater, Func<T, bool> filter)
+		public NonNullList<T> Update(Func<T, T> updater, Func<T, bool> filter)
 		{
 			if (updater == null)
 				throw new ArgumentNullException("updater");
@@ -197,7 +197,7 @@ namespace ProductiveRage.Immutable
 			return UpdateInternal(updater, filter);
 		}
 
-		private Set<T> UpdateInternal(Func<T, T> updater, Func<T, bool> optionalFilter)
+		private NonNullList<T> UpdateInternal(Func<T, T> updater, Func<T, bool> optionalFilter)
 		{
 			if (updater == null)
 				throw new ArgumentNullException("updater");
@@ -223,7 +223,7 @@ namespace ProductiveRage.Immutable
 				{
 					var newValue = updater(currentValue);
 					if (newValue == null)
-						throw new ArgumentException("updated returned a null reference - this is not acceptable, Set<T> will not record nulls");
+						throw new ArgumentException("updated returned a null reference - this is not acceptable, NonNullList<T> will not record nulls");
 					var isNewValueTheSameAsCurrentValue = newValue.Equals(currentValue);
 					if ((earliestUnchangedValueAndIndex == null) && isNewValueTheSameAsCurrentValue)
 						earliestUnchangedValueAndIndex = Tuple.Create(node, i);
@@ -259,13 +259,13 @@ namespace ProductiveRage.Immutable
 					NextIfAny = node
 				};
 			}
-			return new Set<T>(node);
+			return new NonNullList<T>(node);
 		}
 
 		/// <summary>
 		/// This will throw an exception for an invalid index value or for a null value reference
 		/// </summary>
-		public Set<T> RemoveAt(uint index)
+		public NonNullList<T> RemoveAt(uint index)
 		{
 			if (index >= Count)
 				throw new ArgumentOutOfRangeException("index");
@@ -292,13 +292,13 @@ namespace ProductiveRage.Immutable
 					NextIfAny = node
 				};
 			}
-			return new Set<T>(node);
+			return new NonNullList<T>(node);
 		}
 
 		/// <summary>
 		/// This will remove any items from the set that match the specified filter. If no items were matched then the initial set will be returned unaltered.
 		/// </summary>
-		public Set<T> Remove(Func<T, bool> filter)
+		public NonNullList<T> Remove(Func<T, bool> filter)
 		{
 			if (filter == null)
 				throw new ArgumentNullException("filter");
@@ -354,15 +354,15 @@ namespace ProductiveRage.Immutable
 					NextIfAny = node
 				};
 			}
-			return new Set<T>(node);
+			return new NonNullList<T>(node);
 		}
 
-		public static implicit operator Set<T>(NonNullList<T> source)
+		public static implicit operator NonNullList<T>(Set<T> source)
 		{
 			if (source == null)
 				throw new ArgumentNullException(nameof(source));
 
-			return new Set<T>(Script.Write<Node>("source._headIfAny"));
+			return new NonNullList<T>(Script.Write<Node>("source._headIfAny"));
 		}
 
 		public IEnumerator<T> GetEnumerator()
