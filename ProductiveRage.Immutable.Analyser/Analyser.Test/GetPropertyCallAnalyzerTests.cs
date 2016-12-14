@@ -60,6 +60,32 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
+		[TestMethod]
+		public void IdealUsageForSingleArgumentMethodOverload()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static PropertyIdentifier<SomethingWithAnId, int> Test()
+						{
+							return ImmutabilityHelpers.GetProperty<SomethingWithAnId, int>(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						public int Id { get; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
 		/// <summary>
 		/// The CtorSet method should only be called as an extension method (and always target "this") but it's not compulsory for the With method to do the same
 		/// </summary>

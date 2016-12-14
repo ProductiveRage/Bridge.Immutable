@@ -42,13 +42,32 @@ namespace ProductiveRage.Immutable
 		/// it is useful to be able to pass references to these lambdas around, which is problematic with the analyser that checks the propertyIdentifier argument of all calls
 		/// to the With method. To workaround this, a property identifier reference may be created using this method and then passed into the With method - note that all of the
 		/// same validation rules are applied to GetProperty as to With, so it must still be a simple property-access lambda (but now a lambda reference may be created once and
-		/// shared or passed around).
+		/// shared or passed around). Note that the source argument here is only present so that this may exist as an extension method and to make the code more succinct when
+		/// working with an IAmImmutable reference already (it will be possible to use type inference to save having to explicitly specify the T and TPropertyValue type params
+		/// but the returned PropertyIdentifier will not be tied to the source instance).
 		/// </summary>
 		[IgnoreGeneric]
 		public static PropertyIdentifier<T, TPropertyValue> GetProperty<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException("propertyIdentifier");
+
+			return new PropertyIdentifier<T, TPropertyValue>(propertyIdentifier);
+		}
+
+		/// <summary>
+		/// There are analysers to ensure that the IAmImmutable.With extension method is only called with lambdas that match the required format (the lambdas must be a simple
+		/// property access for a property that has a getter and setter and that doesn't have any special translation rules applied via Bridge attributes). However, sometimes
+		/// it is useful to be able to pass references to these lambdas around, which is problematic with the analyser that checks the propertyIdentifier argument of all calls
+		/// to the With method. To workaround this, a property identifier reference may be created using this method and then passed into the With method - note that all of the
+		/// same validation rules are applied to GetProperty as to With, so it must still be a simple property-access lambda (but now a lambda reference may be created once and
+		/// shared or passed around).
+		/// </summary>
+		[IgnoreGeneric]
+		public static PropertyIdentifier<T, TPropertyValue> GetProperty<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier) where T : IAmImmutable
+		{
 			if (propertyIdentifier == null)
 				throw new ArgumentNullException("propertyIdentifier");
 
