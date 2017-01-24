@@ -273,7 +273,10 @@ namespace ProductiveRage.Immutable
 			if (propertyIdentifier == null)
 				throw new ArgumentNullException("propertyIdentifier");
 
-			var cacheKey = new CacheKey(source.GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
+			// The strange "(object)" cast before GetType is called is required due to a new-to-15.7.0 bug that causes GetType calls to fail if the method is generic and has
+			// the [IgnoreGeneric] attribute applied to it and if the GetType target reference is one of the method's generic type arguments. By casting it to object, the
+			// issue is avoided. See http://forums.bridge.net/forum/bridge-net-pro/bugs/3343 for more details.
+			var cacheKey = new CacheKey(((object)source).GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
 
 			PropertySetter setter;
 			if (Cache.TryGetValue(cacheKey, out setter))
