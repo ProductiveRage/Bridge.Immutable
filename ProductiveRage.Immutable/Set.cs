@@ -377,6 +377,11 @@ namespace ProductiveRage.Immutable
 
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
+		// 2017-01-25 DWR: These attributes result in the Node class being represented by a simple object literal. This actually avoids some minor overhead but was really
+		// added due to a bug introduced in Bridge 15.7.0 (http://forums.bridge.net/forum/bridge-net-pro/bugs/3356), having Node as an object literal avoids the issue
+		[ObjectLiteral(ObjectCreateMode.Plain)]
+		[IgnoreGeneric]
+		[External]
 		private sealed class Node
 		{
 			public int Count;

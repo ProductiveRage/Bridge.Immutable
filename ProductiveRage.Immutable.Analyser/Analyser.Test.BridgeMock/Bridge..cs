@@ -3,16 +3,23 @@ using System.Text.RegularExpressions;
 
 namespace Bridge
 {
+	public class ExternalAttribute : Attribute { }
 	public class ImmutableAttribute : Attribute { }
 	public class IgnoreGenericAttribute : Attribute { }
 	public class NameAttribute : Attribute
 	{
 		public NameAttribute(string name) { }
 	}
+	public class ObjectLiteralAttribute : Attribute
+	{
+		public ObjectLiteralAttribute(ObjectCreateMode createMode) { }
+	}
 	public class PriorityAttribute : Attribute
 	{
 		public PriorityAttribute(int priority) { }
 	}
+
+	public enum ObjectCreateMode { Plain }
 
 	public static class Script
 	{
