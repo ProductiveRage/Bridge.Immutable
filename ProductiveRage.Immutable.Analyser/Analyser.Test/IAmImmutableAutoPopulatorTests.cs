@@ -256,6 +256,60 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
 		}
 
+		/// <summary>
+		/// The analyser and code fix can be run/applied to invalid code, such as a constructor argument list having a missing entry - in this case, don't throw an exception (because
+		/// code fixes should never throw), instead just ignore the missing entry when auto-populating the rest of the class
+		/// </summary>
+		[TestMethod]
+		public void IgnoreMissingConstructorArgumentsInsteadOfThrowing()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, , string name)
+						{
+						}
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, , string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
+		}
+
 		[TestMethod]
 		public void DoNotApplyToNonIAmImmutableClasses()
 		{

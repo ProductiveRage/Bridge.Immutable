@@ -68,7 +68,9 @@ namespace ProductiveRage.Immutable.Analyser
 			if (constructor == null)
 				throw new ArgumentNullException(nameof(constructor));
 
-			var constructorArguments = constructor.ParameterList.Parameters.AsEnumerable();
+			var constructorArguments = constructor.ParameterList.Parameters
+				.AsEnumerable()
+				.Where(constructorArgument => !string.IsNullOrWhiteSpace(constructorArgument.Identifier.Text));
 			if (!constructorArguments.Any())
 				return constructorArguments;
 
