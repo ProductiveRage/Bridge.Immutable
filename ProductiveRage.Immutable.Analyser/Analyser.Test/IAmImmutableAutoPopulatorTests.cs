@@ -257,6 +257,77 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
+		/// If there's a parameterless Validate method then call that at the end of the auto-populated constructor. A static method wouldn't make sense (because it wouldn't be able to
+		/// perform validation for the current instance) but the JavaScript in the With method can't tell if the method (if present) is static or not, so the auto-populator doesn't
+		/// differentiate between static or instance Validate methods. If it's on a base class (if there is one) then it's the base class' responsibility to call it from its constructor.
+		/// If it has arguments then we can't call it because the Validate method that we're supporting will validate the current instance as it is configured, for which no arguments
+		/// should be required. This doesn't support partial classes (where the constructor is in one file and the Validate method in another) - in order to deal with that case we would
+		/// have to do deeper analysis.
+		/// </summary>
+		[TestMethod]
+		public void IfApplicableValidateMethodIsDefinedThenItShouldBeCalledAtConstructorEndWhenAutoPopulating()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+						}
+						private void Validate()
+						{
+							if (string.IsNullOrWhiteSpace(Name))
+								throw new ArgumentNullException($""Null/blank {nameof(Name)} specified"");
+						}
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 9, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+							Validate();
+						}
+						private void Validate()
+						{
+							if (string.IsNullOrWhiteSpace(Name))
+								throw new ArgumentNullException($""Null/blank {nameof(Name)} specified"");
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
+		}
+
+		/// <summary>
 		/// The analyser and code fix can be run/applied to invalid code, such as a constructor argument list having a missing entry - in this case, don't throw an exception (because
 		/// code fixes should never throw), instead just ignore the missing entry when auto-populating the rest of the class
 		/// </summary>

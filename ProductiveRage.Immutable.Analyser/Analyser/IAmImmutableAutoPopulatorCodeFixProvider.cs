@@ -51,26 +51,41 @@ namespace ProductiveRage.Immutable.Analyser
 
 		private async Task<Document> PopulateConstructor(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
 		{
+			// If there's a Validate method that should be called at the end of the constructor then ensure that it's invoked at the end of the auto-populated
+			// constructor (the Validate method - if there is one that meets the requirements of being a method with zero arguments) is automatically called after
+			// any With call but needs to be explicitly called from the constructor. Note: It would only make sense for the method to be an instance method (since
+			// it can't validate the state of an instance if it's a static method) but the JavaScript doesn't (can't) check this and so, for consistency, we should
+			// not restrict ourselves to only instance methods here.
+			var classDeclaration = constructorDeclaration.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().First();
+			var validateMethodIfDefined = classDeclaration.ChildNodes()
+				.OfType<MethodDeclarationSyntax>()
+				.Where(method =>
+					(method.Identifier.Text == "Validate") &&
+					!method.ParameterList.Parameters.Any() &&
+					(method.Arity == 0)
+				)
+				.FirstOrDefault();
+
 			// Get all of the arguments of that constructor that are not passed to a base constructor
 			var constructorArguments = IAmImmutableAutoPopulatorAnalyzer.GetConstructorArgumentsThatAreNotPassedToBaseConstructor(constructorDeclaration);
 
 			// Add the CtorSet calls to the constructor
-			var populatedConstructor = constructorDeclaration.WithBody(
-				constructorDeclaration.Body.AddStatements(
-						constructorArguments
-						.Select(constructorArgument => GeneratorCtorSetCall(
-							GetPropertyName(constructorArgument.Identifier.Text),
-							constructorArgument.Identifier.Text
-						))
-						.ToArray()
-				)
+			var newConstructorBody = constructorDeclaration.Body.AddStatements(
+					constructorArguments
+					.Select(constructorArgument => GeneratorCtorSetCall(
+						GetPropertyName(constructorArgument.Identifier.Text),
+						constructorArgument.Identifier.Text
+					))
+					.ToArray()
 			);
+			if (validateMethodIfDefined != null)
+				newConstructorBody = newConstructorBody.AddStatements(GetValidateCall());
+			var populatedConstructor = constructorDeclaration.WithBody(newConstructorBody);
 
 			// Add properties to the class that correspond to the constructor arguments (ignoring any properties that are already declared - there aren't
 			// expected to be any because the quickest way now to generate an IAmImmutable implementation is to use this code fix on a constructor, to
 			// populate the class with minimum manual labour, but if some of the properties have already been added for whatever reason then that's
 			// fine, they will be ignored.
-			var classDeclaration = constructorDeclaration.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().First();
 			var namesOfPropertiesDefinedOnClass = classDeclaration.ChildNodes()
 				.OfType<PropertyDeclarationSyntax>()
 				.Where(property => property.ExplicitInterfaceSpecifier == null) // Don't consider explicitly-implemented interface properties
@@ -149,6 +164,16 @@ namespace ProductiveRage.Immutable.Analyser
 						SyntaxFactory.IdentifierName(constructorArgumentName)
 					)
 					}))
+				)
+			);
+		}
+
+		private static ExpressionStatementSyntax GetValidateCall()
+		{
+			return SyntaxFactory.ExpressionStatement(
+				SyntaxFactory.InvocationExpression(
+					SyntaxFactory.IdentifierName("Validate"),
+					SyntaxFactory.ArgumentList()
 				)
 			);
 		}
