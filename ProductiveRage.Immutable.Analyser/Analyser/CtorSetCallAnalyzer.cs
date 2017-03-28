@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -51,6 +52,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.TPropertyValueNotSpecificEnough)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -61,7 +70,8 @@ namespace ProductiveRage.Immutable.Analyser
 					ConstructorRule,
 					IndirectTargetAccessorAccessRule,
 					SimplePropertyAccessorArgumentAccessRule,
-					BridgeAttributeAccessRule
+					BridgeAttributeAccessRule,
+					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule
 				);
 			}
 		}
@@ -77,8 +87,7 @@ namespace ProductiveRage.Immutable.Analyser
 			if (invocation == null)
 				return;
 
-			var lastExpressionToken = invocation.Expression.GetLastToken();
-			if ((lastExpressionToken == null) || (lastExpressionToken.Text != "CtorSet"))
+			if ((invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.Text != "CtorSet")
 				return;
 
 			var ctorSetMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
@@ -129,7 +138,20 @@ namespace ProductiveRage.Immutable.Analyser
 				return;
 			}
 
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
+			// If the CtorSet method signature called is one with a TPropertyValue generic type argument then get that type. We need to pass
+			// this to the GetPropertyRetrieverArgumentStatus method so that it can ensure that we are not casting the property down to a
+			// less specific type, which would allow an instance of that less specific type to be set as a property value. For example, if
+			// within a constructor of an IAmImmutable class that has a "Name" property of type string then the following should not be
+			// allowed:
+			//
+			//   this.CtorSet(_ => _.Name, new object());
+			//
+			// This will compile (TPropertyValue willl be inferred as "Object") but we don't want to allow it since it will result in the
+			// Name property being assigned a non-string reference.
+			var typeArguments = ctorSetMethod.TypeParameters.Zip(ctorSetMethod.TypeArguments, (genericTypeParam, type) => new { Name = genericTypeParam.Name, Type = type });
+			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
+
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -162,6 +184,13 @@ namespace ProductiveRage.Immutable.Analyser
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
 						propertyRetrieverArgument.GetLocation()
+					));
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType:
+					context.ReportDiagnostic(Diagnostic.Create(
+						PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
+						invocation.GetLocation()
 					));
 					return;
 			}

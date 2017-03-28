@@ -36,6 +36,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.GetPropertyAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.TPropertyValueNotSpecificEnough)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -44,7 +52,8 @@ namespace ProductiveRage.Immutable.Analyser
 				return ImmutableArray.Create(
 					SimplePropertyAccessorArgumentAccessRule,
 					IndirectTargetAccessorAccessRule,
-					BridgeAttributeAccessRule
+					BridgeAttributeAccessRule,
+					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule
 				);
 			}
 		}
@@ -60,8 +69,7 @@ namespace ProductiveRage.Immutable.Analyser
 			if (invocation == null)
 				return;
 
-			var lastExpressionToken = invocation.Expression.GetLastToken();
-			if ((lastExpressionToken == null) || (lastExpressionToken.Text != "GetProperty"))
+			if ((invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.Text != "GetProperty")
 				return;
 
 			var getPropertyMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
@@ -80,9 +88,15 @@ namespace ProductiveRage.Immutable.Analyser
 				.Single()
 				.Index;
 
+			// See notes in WithCallAnalyzer and CtorSetCallAnalyzer about why it's important that we don't allow down casting of the property
+			// type (if a "Name" property is of type string then don't allow the TPropertyValue type argument to be inferred as anything less
+			// specific, such as object).
+			var typeArguments = getPropertyMethod.TypeParameters.Zip(getPropertyMethod.TypeArguments, (genericTypeParam, type) => new { Name = genericTypeParam.Name, Type = type });
+			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
+
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
 			var propertyRetrieverArgument = invocation.ArgumentList.Arguments[indexOfPropertyIdentifierArgument];
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -115,6 +129,13 @@ namespace ProductiveRage.Immutable.Analyser
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
 						propertyRetrieverArgument.GetLocation()
+					));
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType:
+					context.ReportDiagnostic(Diagnostic.Create(
+						PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
+						invocation.GetLocation()
 					));
 					return;
 			}

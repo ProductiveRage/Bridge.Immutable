@@ -354,6 +354,68 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent, expected);
 		}
 
+
+		/// <summary>
+		/// This tests the fix for Issue 6, which showed that the TPropertyValue type parameter could be a type that was less specific that the property - which would mean
+		/// that the With call would set the target property to a type that it shouldn't be possible for it to be (for example, it would allow a string property to be set
+		/// to an instance of an object that wasn't a string).
+		/// </summary>
+		[TestMethod]
+		public void TPropertyValueMayNotBeAncestorOfPropertyType()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(string id)
+						{
+							this.CtorSet(_ => _.Id, new object());
+						}
+						public string Id { get; private set; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = CtorSetCallAnalyzer.DiagnosticId,
+				Message = CtorSetCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 10, 8)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
+		/// <summary>
+		/// This is a companion to TPropertyValueMayNotBeAncestorOfPropertyType that illustrates that TPropertyValue does not have to be the precise same type as the
+		/// target property - it may be a MORE specific type (but it may not be a LESS specific type)
+		/// </summary>
+		[TestMethod]
+		public void TPropertyValueMayBeSpecialisationOfPropertyType()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(string id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public object Id { get; private set; }
+					}
+				}";
+			VerifyCSharpDiagnostic(testContent);
+		}
+
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new CtorSetCallAnalyzer();

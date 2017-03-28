@@ -13,7 +13,10 @@ namespace ProductiveRage.Immutable.Analyser
 		public const string AnalyserAssemblyName = "ProductiveRage.Immutable";
 		private const string BridgeAssemblyName = "Bridge";
 
-		public static PropertyValidationResult GetPropertyRetrieverArgumentStatus(ArgumentSyntax propertyRetrieverArgument, SyntaxNodeAnalysisContext context)
+		public static PropertyValidationResult GetPropertyRetrieverArgumentStatus(
+			ArgumentSyntax propertyRetrieverArgument,
+			SyntaxNodeAnalysisContext context,
+			ITypeSymbol propertyValueTypeIfKnown)
 		{
 			if (propertyRetrieverArgument == null)
 				throw new ArgumentNullException(nameof(propertyRetrieverArgument));
@@ -79,10 +82,23 @@ namespace ProductiveRage.Immutable.Analyser
 			// you're creative when considering a Bridge project since JavaScript is so malleable (so it doesn't seem worth going mad trying to
 			// make it impossible to circumvent, it's fine just to make it so that there's clearly some shenanigans going on and that everything
 			// will work if there isn't).
-
 			if ((property.SetMethod != null) && HasDisallowedAttribute(property.SetMethod))
 				return PropertyValidationResult.SetterHasBridgeAttributes;
 
+			// Ensure that the property value is at least as specific a type as the target property. For example, if the target property is of
+			// type string and we know that the value that the code wants to set that property to be is an object then we need to nip that in
+			// the bud. This is, unfortunately, quite an easy situation to fall into - if, for example, "x" is an instance of an IAmImmutable-
+			// implementing class that has a "Name" property that is a string then the following will compile
+			//
+			//   x = x.With(_ => _.Name, new object());
+			//
+			// Although the lambda "_ => _.Name" is a Func<Whatever, string> it may also be interpreted as a Func<Whatever, object> if the
+			// "TPropertyValue" generic type argument of the With<T, TPropertyValue> is inferred (or explicitly specified) as object.
+			if ((propertyValueTypeIfKnown != null) && !(propertyValueTypeIfKnown is IErrorTypeSymbol))
+			{
+				if (!IsEqualToOrInheritsFrom(propertyValueTypeIfKnown, property.GetMethod.ReturnType))
+					return PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType;
+			}
 			return PropertyValidationResult.Ok;
 		}
 
@@ -97,6 +113,8 @@ namespace ProductiveRage.Immutable.Analyser
 			MissingGetter,
 			GetterHasBridgeAttributes,
 			SetterHasBridgeAttributes,
+
+			PropertyIsOfMoreSpecificTypeThanSpecificValueType,
 
 			UnableToConfirmOrDeny
 		}
@@ -146,6 +164,34 @@ namespace ProductiveRage.Immutable.Analyser
 				ns = ns.ContainingNamespace;
 			}
 			return string.Join(".", typeNameSegments) == "ProductiveRage.Immutable.PropertyIdentifier";
+		}
+
+		private static bool IsEqualToOrInheritsFrom(ITypeSymbol symbol, ITypeSymbol baseTypeSymbol) // Based on http://stackoverflow.com/a/28247330/3813189
+		{
+			if (symbol.AllInterfaces.Any(i => AreEqual(i, baseTypeSymbol)))
+				return true;
+			while (true)
+			{
+				if (AreEqual(symbol, baseTypeSymbol))
+					return true;
+				if (symbol.BaseType != null)
+				{
+					symbol = symbol.BaseType;
+					continue;
+				}
+				break;
+			}
+			return false;
+		}
+
+		private static bool AreEqual(ITypeSymbol x, ITypeSymbol y)
+		{
+			if (x == null)
+				throw new ArgumentNullException(nameof(x));
+			if (y == null)
+				throw new ArgumentNullException(nameof(y));
+
+			return x.ToString() == y.ToString();
 		}
 	}
 }

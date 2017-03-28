@@ -36,6 +36,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.WithAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.TPropertyValueNotSpecificEnough)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -44,7 +52,8 @@ namespace ProductiveRage.Immutable.Analyser
 				return ImmutableArray.Create(
 					SimplePropertyAccessorArgumentAccessRule,
 					IndirectTargetAccessorAccessRule,
-					BridgeAttributeAccessRule
+					BridgeAttributeAccessRule,
+					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule
 				);
 			}
 		}
@@ -60,8 +69,7 @@ namespace ProductiveRage.Immutable.Analyser
 			if (invocation == null)
 				return;
 
-			var lastExpressionToken = invocation.Expression.GetLastToken();
-			if ((lastExpressionToken == null) || (lastExpressionToken.Text != "With"))
+			if ((invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.Text != "With")
 				return;
 
 			var withMethod = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
@@ -92,9 +100,22 @@ namespace ProductiveRage.Immutable.Analyser
 				.Single()
 				.Index;
 
+			// If the With method signature called is one with a TPropertyValue generic type argument then get that type. We need to pass
+			// this to the GetPropertyRetrieverArgumentStatus method so that it can ensure that we are not casting the property down to a
+			// less specific type, which would allow an instance of that less specific type to be set as a property value. For example, if
+			// "x" is an instance of an IAmImmutable class and it has a "Name" property of type string then the following should not be
+			// allowed:
+			//
+			//   x = x.With(_ => _.Name, new object());
+			//
+			// This will compile (TPropertyValue willl be inferred as "Object") but we don't want to allow it since it will result in the
+			// Name property being assigned a non-string reference.
+			var typeArguments = withMethod.TypeParameters.Zip(withMethod.TypeArguments, (genericTypeParam, type) => new { Name = genericTypeParam.Name, Type = type });
+			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
+
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
 			var propertyRetrieverArgument = invocation.ArgumentList.Arguments[indexOfPropertyIdentifierArgument];
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -127,6 +148,13 @@ namespace ProductiveRage.Immutable.Analyser
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
 						propertyRetrieverArgument.GetLocation()
+					));
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType:
+					context.ReportDiagnostic(Diagnostic.Create(
+						PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
+						invocation.GetLocation()
 					));
 					return;
 			}

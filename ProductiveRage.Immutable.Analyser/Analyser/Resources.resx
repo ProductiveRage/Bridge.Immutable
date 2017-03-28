@@ -171,6 +171,9 @@
   <data name="IAmImmutableValidationShouldNotBePerformedInConstructor" xml:space="preserve">
     <value>When new IAmImmutable instances are created via "With" calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a "Validate" method to the class and call it at the end of the constructor, it will also be called whenever "With"creates a new instance. The "Validate" method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private).</value>
   </data>
+  <data name="TPropertyValueNotSpecificEnough" xml:space="preserve">
+    <value>TPropertyValue is a type that is less specialised than the indicated property (if the indicated property is a string, for example, then TPropertyValue may not be Object - TPropertyValue must match the property type precisely or be a type derived from it)</value>
+  </data>
   <data name="WithAnalyserTitle" xml:space="preserve">
     <value>With should only be used in a particular manner</value>
   </data>

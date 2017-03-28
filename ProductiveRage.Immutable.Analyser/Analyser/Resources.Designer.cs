@@ -224,6 +224,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TPropertyValue is a type that is less specialised than the indicated property (if the indicated property is a string, for example, then TPropertyValue may not be Object - TPropertyValue must match the property type precisely or be a type derived from it).
+        /// </summary>
+        internal static string TPropertyValueNotSpecificEnough {
+            get {
+                return ResourceManager.GetString("TPropertyValueNotSpecificEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to With should only be used in a particular manner.
         /// </summary>
         internal static string WithAnalyserTitle {
