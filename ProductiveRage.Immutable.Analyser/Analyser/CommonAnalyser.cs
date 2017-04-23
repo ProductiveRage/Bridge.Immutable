@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -156,14 +155,11 @@ namespace ProductiveRage.Immutable.Analyser
 			// same namespace, but they wouldn't be able to do it while having precisely two type params)
 			if (typeOfExpression.TypeArguments.Length != 2)
 				return false;
-			var typeNameSegments = new List<string> { typeOfExpression.Name };
-			var ns = typeOfExpression.ContainingNamespace;
-			while ((ns != null) && !string.IsNullOrWhiteSpace(ns.Name))
-			{
-				typeNameSegments.Insert(0, ns.Name);
-				ns = ns.ContainingNamespace;
-			}
-			return string.Join(".", typeNameSegments) == "ProductiveRage.Immutable.PropertyIdentifier";
+
+			return
+				(typeOfExpression.Name == "PropertyIdentifier") &&
+				(typeOfExpression.ContainingAssembly != null) &&
+				(typeOfExpression.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
 		}
 
 		private static bool IsEqualToOrInheritsFrom(ITypeSymbol symbol, ITypeSymbol baseTypeSymbol) // Based on http://stackoverflow.com/a/28247330/3813189
