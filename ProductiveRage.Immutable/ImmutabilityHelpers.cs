@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Bridge;
 
 namespace ProductiveRage.Immutable
@@ -152,7 +153,28 @@ namespace ProductiveRage.Immutable
 		/// ensure that "value" itself will not be null (though it may represent a "missing" value).
 		/// </summary>
 		[IgnoreGeneric]
+		[Obsolete("The Set class is now obsolete, it has been replaced by NonNullList - the are currently implicit casts between them but Set will be removed in a future version of the library")]
 		public static T With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index, TPropertyElement value) where T : IAmImmutable
+		{
+			// Set and NonNullList have the interface so we can safely cast from
+			//   Func<T, Set<TPropertyElement>>
+			// to
+			//   Func<T, NonNullList<TPropertyElement>>
+			// which we'll do with a Script.Write call
+			return source.With(Script.Write<Func<T, NonNullList<TPropertyElement>>>("propertyIdentifier"), index, value);
+		}
+
+		/// <summary>
+		/// This will take a source reference, a lambda that identifies the getter of a property on the source type that is a NonNullList, an index that must exist within the
+		/// current value for the specified property on the source reference and a new value to set for that property - it will try to clone the source reference and then change
+		/// the value of the element at the specified index on the indicated property on the new reference. The same restrictions that apply to "CtorSet" apply here (in terms
+		/// of the propertyIdentifier having to be a simple property retrieval and of the getter / setter having to follow a naming convention), if they are not met then an
+		/// exception will be thrown. Note that if the new value is the same as the current value then this process will be skipped and the source reference will be passed
+		/// straight back out. The new property value may not be null - if the property must be nullable then it should have a type wrapped in an Optional struct, which will
+		/// ensure that "value" itself will not be null (though it may represent a "missing" value).
+		/// </summary>
+		[IgnoreGeneric]
+		public static T With<T, TPropertyElement>(this T source, Func<T, NonNullList<TPropertyElement>> propertyIdentifier, uint index, TPropertyElement value) where T : IAmImmutable
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
@@ -341,16 +363,16 @@ namespace ProductiveRage.Immutable
 					)),
 					AsRegExSegment("; }")
 				};
-				var objectLiteralExpectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
+				var objectLiteralExpectedFunctionFormatMatcher = new Regex(
 					string.Join("([.\\s\\S]*?)", objectLiteralRegExSegments)
 				);
 				var objectLiteralPropertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
-				var objectLiteralPropertyNameMatchResults = objectLiteralExpectedFunctionFormatMatcher.Exec(objectLiteralPropertyIdentifierStringContent);
-				if (objectLiteralPropertyNameMatchResults == null)
+				var objectLiteralPropertyNameMatchResults = objectLiteralExpectedFunctionFormatMatcher.Matches(objectLiteralPropertyIdentifierStringContent);
+				if (objectLiteralPropertyNameMatchResults.Count == 0)
 					throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property access for an [ObjectLiteral], such as \"function(_) { return _.name; }\", rather than \"" + objectLiteralPropertyIdentifierStringContent + "\"");
 
 				// If the target is an [ObjectLiteral] then just set the property name on the target, don't try to call a setter (since it won't be defined)
-				var objectLiteralPropertyName = objectLiteralPropertyNameMatchResults[objectLiteralPropertyNameMatchResults.Length - 1];
+				var objectLiteralPropertyName = objectLiteralPropertyNameMatchResults[objectLiteralPropertyNameMatchResults.Count - 1];
 				return (target, newValue, ignoreAnyExistingLock) =>
 				{
 					Script.Write("target[{0}] = {1};", objectLiteralPropertyName, newValue);
@@ -372,16 +394,16 @@ namespace ProductiveRage.Immutable
 				AsRegExSegment("get"),
 				AsRegExSegment("(); }")
 			};
-			var expectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
+			var expectedFunctionFormatMatcher = new Regex(
 				string.Join("([.\\s\\S]*?)", regExSegments)
 			);
 			var propertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
-			var propertyNameMatchResults = expectedFunctionFormatMatcher.Exec(propertyIdentifierStringContent);
-			if (propertyNameMatchResults == null)
+			var propertyNameMatchResults = expectedFunctionFormatMatcher.Matches(propertyIdentifierStringContent);
+			if (propertyNameMatchResults.Count == 0)
 				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.getName(); }\", rather than \"" + propertyIdentifierStringContent + "\"");
 
-			var typeAliasPrefix = propertyNameMatchResults[propertyNameMatchResults.Length - 2];
-			var propertyName = propertyNameMatchResults[propertyNameMatchResults.Length - 1];
+			var typeAliasPrefix = propertyNameMatchResults[0].Groups[2];
+			var propertyName = propertyNameMatchResults[0].Groups[3];
 			var propertyGetterName = typeAliasPrefix + "get" + propertyName;
 			var propertySetterName = typeAliasPrefix + "set" + propertyName;
 			var hasFunctionWithExpectedSetterName = false;
@@ -422,7 +444,7 @@ namespace ProductiveRage.Immutable
 			if (value == null)
 				throw new ArgumentNullException("value");
 
-			return EscapeForReg(value).Replace(" ", "[ ]?").Replace(";", ";?");
+			return EscapeForReg(value).Replace(" ", "[ ]?").Replace(";", ";?").Replace("(", "\\(").Replace(")", "\\)");
 		}
 
 		[IgnoreGeneric]
@@ -437,7 +459,7 @@ namespace ProductiveRage.Immutable
 			var propertyIdentifierString = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
 			var argumentListStartsAt = propertyIdentifierString.IndexOf("(");
 			var argumentListEndsAt = propertyIdentifierString.IndexOf(")");
-			return propertyIdentifierString.JsSubstring(argumentListStartsAt + 1, argumentListEndsAt);
+			return propertyIdentifierString.Substring(argumentListStartsAt + 1, argumentListEndsAt - (argumentListStartsAt + 1));
 		}
 
 		[IgnoreGeneric]
@@ -476,11 +498,12 @@ namespace ProductiveRage.Immutable
 		}
 
 		// See http://stackoverflow.com/a/9924463 for more details
-		private readonly static Bridge.Text.RegularExpressions.Regex STRIP_COMMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
-			@"/(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))/mg"
+		private readonly static Regex STRIP_COMMENTS = new Regex(
+			@"(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))",
+			RegexOptions.Multiline
 		);
-		private readonly static Bridge.Text.RegularExpressions.Regex WHITESPACE_SEGMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
-			@"/\s+/g"
+		private readonly static Regex WHITESPACE_SEGMENTS = new Regex(
+			@"\s+"
 		);
 		[IgnoreGeneric]
 		private static string GetNormalisedFunctionStringRepresentation<T, TPropertyValue>(Func<T, TPropertyValue> propertyIdentifier)
@@ -488,15 +511,15 @@ namespace ProductiveRage.Immutable
 			if (propertyIdentifier == null)
 				throw new ArgumentNullException("propertyIdentifier");
 
-			return GetFunctionStringRepresentation(propertyIdentifier)
-				.Replace(STRIP_COMMENTS, "")
-				.Replace(WHITESPACE_SEGMENTS, " ")
-				.Trim();
+			var content = GetFunctionStringRepresentation(propertyIdentifier);
+			content = STRIP_COMMENTS.Replace(content, "");
+			content = WHITESPACE_SEGMENTS.Replace(content, "");
+			return content.Trim();
 		}
 
 		// Courtesy of http://stackoverflow.com/a/3561711
-		private readonly static Bridge.Text.RegularExpressions.Regex ESCAPE_FOR_REGEX = Script.Write<Bridge.Text.RegularExpressions.Regex>(
-			@"/[-\/\\^$*+?.()|[\]{}]/g"
+		private readonly static Regex ESCAPE_FOR_REGEX = new Regex(
+			@"[-\/\\^$*+?.()|[\]{}]"
 		);
 		private static string EscapeForReg(string value)
 		{
