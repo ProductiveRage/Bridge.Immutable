@@ -5,6 +5,7 @@ using Bridge;
 
 namespace ProductiveRage.Immutable
 {
+	[Obsolete("The Set class is now obsolete, it has been replaced by NonNullList - the are currently implicit casts between them but Set will be removed in a future version of the library")]
 	public static class Set
 	{
 		/// <summary>
@@ -27,6 +28,7 @@ namespace ProductiveRage.Immutable
 		}
 	}
 
+	[Obsolete("The Set class is now obsolete, it has been replaced by NonNullList - the are currently implicit casts between them but Set will be removed in a future version of the library")]
 	public sealed class Set<T> : IEnumerable<T>
 	{
 		private readonly static Set<T> _empty = new Set<T>(null);

@@ -357,7 +357,9 @@ namespace ProductiveRage.Immutable
 			return new NonNullList<T>(node);
 		}
 
+#pragma warning disable CS0618 // Ignore the fact that Set is obsolete, this implicit cast will only be supported until the Set class is finally removed from the library
 		public static implicit operator NonNullList<T>(Set<T> source)
+#pragma warning restore CS0618 // Type or member is obsolete
 		{
 			if (source == null)
 				throw new ArgumentNullException(nameof(source));

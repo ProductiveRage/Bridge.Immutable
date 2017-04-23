@@ -210,7 +210,10 @@ namespace ProductiveRage.Immutable
 		/// be null (though it may represent a "missing" value).
 		/// </summary>
 		[IgnoreGeneric]
+		[Obsolete("The Set class is now obsolete, it has been replaced by NonNullList - the are currently implicit casts between them but Set will be removed in a future version of the library")]
+#pragma warning disable CS0618 // Ignore the fact that Set is obsolete here (I'm aware, hence the Obsolete atttribute on this method)
 		public static Func<TPropertyElement, T> With<T, TPropertyElement>(this T source, Func<T, Set<TPropertyElement>> propertyIdentifier, uint index) where T : IAmImmutable
+#pragma warning restore CS0618
 		{
 			if (source == null)
 				throw new ArgumentNullException("source");
