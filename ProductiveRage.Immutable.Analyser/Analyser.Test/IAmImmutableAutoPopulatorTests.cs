@@ -194,7 +194,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public class ManagerDetails : EmployeeDetails
 					{
-						public ManagerDetails(int id, string name, Set<EmployeeDetails> reports) : base(id, name)
+						public ManagerDetails(int id, string name, NonNullList<EmployeeDetails> reports) : base(id, name)
 						{
 						}
 					}
@@ -232,12 +232,12 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				{
 					public class ManagerDetails : EmployeeDetails
 					{
-						public ManagerDetails(int id, string name, Set<EmployeeDetails> reports) : base(id, name)
+						public ManagerDetails(int id, string name, NonNullList<EmployeeDetails> reports) : base(id, name)
 						{
 							this.CtorSet(_ => _.Reports, reports);
 						}
 
-						public Set<EmployeeDetails> Reports { get; }
+						public NonNullList<EmployeeDetails> Reports { get; }
 					}
 
 					public class EmployeeDetails : IAmImmutable
