@@ -93,7 +93,18 @@ namespace ProductiveRage.Immutable.Analyser
 			if (method == null)
 				return;
 
+			// Note: If the target method is an extension method then GetSymbolInfo does something clever based upon how it's called. If, for example, the extension method has two
+			// arguments - the "this" argument and a second one - and the method is called as an extension method then the "method" instance here will have a single parameter
+			// (because it only requires a single parameter to be provided since the first is provided by the reference that the extension method is being called on). However, if
+			// the same extension method is called as a regular static method then the "method" instance here will list two parameters. So the number of argument values and the
+			// number of expected method parameters will be consistent for the same extension method, even though it will appear to have one less parameter when called one way
+			// rather than the other. One way that the argument values and the number of parameters MAY appear inconsistent, though, is if the method has parameters with default
+			// values - in this case, there may be fewer argument values than there are parameters (meaning the last parameters are satisfied with their defaults). This means that
+			// we need to be sure to only look at the provided argument values and to ignore any method parameters that are left to their defaults (default values have to be compile
+			// time constants and so, for delegates, these will have to null - so it won't be possible for a method parameter to have an invalid default value other than null, so
+			// we only need to worry about validating the actual argument values).
 			var invocationArgumentDetails = method.Parameters
+				.Take(invocation.ArgumentList.Arguments.Count) // Only consider argument values that are specified (ignore any parameters that are taking default values)
 				.Select((p, i) => new
 				{
 					Index = i,

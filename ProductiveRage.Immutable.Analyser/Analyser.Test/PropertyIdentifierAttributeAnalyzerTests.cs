@@ -45,6 +45,124 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
+		/// While investigating an issue, I thought that it might have something to do with calling an extension method- it didn't but some extra test coverage doesn't hurt
+		/// </summary>
+		[TestMethod]
+		public void ExtensionMethodsMustWork()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							x.Test2(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public static class SomethingWithAnIdExtensions
+					{
+						public static void Test2(this SomethingWithAnId source, [PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier) { }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
+		/// This is a companion to ExtensionMethodsMustWork and ensures that the analyser doesn't get confused when extension methods are called either as extension methods OR as simple static methods
+		/// </summary>
+		[TestMethod]
+		public void ExtensionMethodsCalledDirectlyMustWork()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							SomethingWithAnIdExtensions.Test2(x, _ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public static class SomethingWithAnIdExtensions
+					{
+						public static void Test2(this SomethingWithAnId source, [PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier) { }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
+		/// The analyser was trying to match up argument values to every parameter in the target method, which was a problem when the target method had parameters with default values
+		/// because this means that there may be less argument values than parameters
+		/// </summary>
+		[TestMethod]
+		public void DefaultArgumentValuesMustWork()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							x.Test2(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public static class SomethingWithAnIdExtensions
+					{
+						public static void Test2(this SomethingWithAnId source, [PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier, int someOtherValue = 1) { }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
 		/// This is probably the simplest example of a malformed request - a method (Test2) takes a [PropertyIdentifier] argument that will identify a property of type int from a SomethingWithAnId
 		/// reference but the provided lambda returns a constant instead of accessing a property
 		/// </summary>
