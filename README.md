@@ -12,8 +12,8 @@ A way to make it easier to create and work with immutable classes in [Bridge.NET
 			Name = name;
 		}
 
-		public int Id { get; private set; }
-		public NameDetails Name { get; private set; }
+		public int Id { get; }
+		public NameDetails Name { get; }
 
 		public PersonDetails WithId(int id)
 		{
@@ -54,8 +54,8 @@ What this library does is allow you to write this:
 			this.CtorSet(_ => _.Id, id);
 			this.CtorSet(_ => _.Name, name);
 		}
-		public int Id { get; private set; }
-		public NameDetails Name { get; private set; }
+		public int Id { get; }
+		public NameDetails Name { get; }
 	}
 	
 "CtorSet" is an extension method which will set the specified property on the "this" instance to the specified value. It's type safe in that the type of the property must match the type of the value, so you can't accidentally set the (string) "Name" property using the (int) "id" constructor argument. "CtorSet" does some reflection work to identify what property to target and will call the setter even though it is private - as such, this should only ever be done from within the constructor, otherwise you could set private properties of classes all over the place and then they wouldn't be immutable any more! Once a property has been set with "CtorSet", it may not be set again on that instance (a runtime exception will occur) - this means that, so long as all properties are set in the constructor then that instance's data will be "frozen". This is also why the "CtorSet" method will only work on types that implement the **IAmImmutable** interface - this is an empty interface, so there is no burden in implementing it, it exists only to identify classes as having been designed for "CtorSet" to operate on them.
@@ -88,9 +88,9 @@ So, if you wanted a property that may or may not have a value then you would wri
 			this.CtorSet(_ => _.Name, name);
 			this.CtorSet(_ => _.ReportsTo, reportsTo);
 		}
-		public int Id { get; private set; }
-		public NameDetails Name { get; private set; }
-		public Optional<PersonDetails> ReportsTo { get; private set; }
+		public int Id { get; }
+		public NameDetails Name { get; }
+		public Optional<PersonDetails> ReportsTo { get; }
 	}
 	
 You can be confident that "Name" will never be null, but "ReportsTo" *may* have no value - but that's ok, because the type system tells you that it's optional!
@@ -169,9 +169,9 @@ There is a "With" extension method that makes working with sets a little easier.
 			this.CtorSet(_ => _.Name, name);
 			this.CtorSet(_ => _.Staff, staff);
 		}
-		public int Id { get; private set; }
-		public NameDetails Name { get; private set; }
-		public NonNullList<PersonDetails> Staff { get; private set; }
+		public int Id { get; }
+		public NameDetails Name { get; }
+		public NonNullList<PersonDetails> Staff { get; }
 	}
 
 .. and you wanted to update the third entry in an instance's "Staff" set, then you could do something like the following:
