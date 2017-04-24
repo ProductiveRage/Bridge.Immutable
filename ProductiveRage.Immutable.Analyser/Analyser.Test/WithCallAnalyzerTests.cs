@@ -366,6 +366,33 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
+		[TestMethod]
+		public void UpdateViaPropertyIdentifierAttributeMethodArgument()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static SomethingWithAnId WithId(SomethingWithAnId x, [PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier, int id)
+						{
+							return x.With(propertyIdentifier, id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						public int Id { get; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
 		/// <summary>
 		/// This tests the fix for Issue 6, which showed that the TPropertyValue type parameter could be a type that was less specific that the property - which would mean
 		/// that the With call would set the target property to a type that it shouldn't be possible for it to be (for example, it would allow a string property to be set
@@ -398,7 +425,11 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = WithCallAnalyzer.DiagnosticId,
-				Message = WithCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+				Message = string.Format(
+					WithCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+					"string",
+					"Object"
+				),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{

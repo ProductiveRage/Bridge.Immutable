@@ -371,7 +371,6 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
-
 		/// <summary>
 		/// This tests the fix for Issue 6, which showed that the TPropertyValue type parameter could be a type that was less specific that the property - which would mean
 		/// that the With call would set the target property to a type that it shouldn't be possible for it to be (for example, it would allow a string property to be set
@@ -404,7 +403,11 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = GetPropertyCallAnalyzer.DiagnosticId,
-				Message = GetPropertyCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+				Message = string.Format(
+					GetPropertyCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+					"string",
+					"Object"
+				),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{
@@ -442,6 +445,64 @@ namespace ProductiveRage.Immutable.Analyser.Test
 						public object Id { get; private set; }
 					}
 				}";
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
+		/// It would be a bit pointless to use one PropertyIdentifier to create another (because they would have the same generic types and so perform the exact same property retrieval)
+		/// but this test confirms that the analysers understand that a PropertyIdentifier may be passed in as the lambda to the GetProperty method (just as it may be passed into the
+		/// CtorSet and With methods)
+		/// </summary>
+		[TestMethod]
+		public void CanUseOnePropertyIdentifierToGenerateAnother()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x, PropertyIdentifier propertyIdentifier)
+						{
+							return x.GetProperty(propertyIdentifier);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						public int Id { get; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		[TestMethod]
+		public void CanUsePropertyIdentifierAttributeIdentifiedArgumentToGeneratePropertyGetter()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static PropertyIdentifier<SomethingWithAnId, int> Test(SomethingWithAnId x, [PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier)
+						{
+							return x.GetProperty(propertyIdentifier);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						public int Id { get; }
+					}
+				}";
+
 			VerifyCSharpDiagnostic(testContent);
 		}
 

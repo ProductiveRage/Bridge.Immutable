@@ -115,7 +115,8 @@ namespace ProductiveRage.Immutable.Analyser
 
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
 			var propertyRetrieverArgument = invocation.ArgumentList.Arguments[indexOfPropertyIdentifierArgument];
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown))
+			IPropertySymbol propertyIfSuccessfullyRetrieved;
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown, out propertyIfSuccessfullyRetrieved))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -152,9 +153,13 @@ namespace ProductiveRage.Immutable.Analyser
 					return;
 
 				case CommonAnalyser.PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType:
+					// propertyIfSuccessfullyRetrieved and propertyValueTypeIfKnown will both be non-null if PropertyIsOfMoreSpecificTypeThanSpecificValueType was returned
+					// (since it would not be possible to ascertain that that response is appropriate without being able to compare the two values)
 					context.ReportDiagnostic(Diagnostic.Create(
 						PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
-						invocation.GetLocation()
+						invocation.GetLocation(),
+						propertyIfSuccessfullyRetrieved.GetMethod.ReturnType,
+						propertyValueTypeIfKnown.Name
 					));
 					return;
 			}

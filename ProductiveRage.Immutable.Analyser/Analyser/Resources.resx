@@ -171,8 +171,29 @@
   <data name="IAmImmutableValidationShouldNotBePerformedInConstructor" xml:space="preserve">
     <value>When new IAmImmutable instances are created via "With" calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a "Validate" method to the class and call it at the end of the constructor, it will also be called whenever "With"creates a new instance. The "Validate" method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private).</value>
   </data>
+  <data name="PropertyIdentifierAttributeAnalyserTitle" xml:space="preserve">
+    <value>[PropertyIdentifier] arguments must follow prescribed guidelines</value>
+  </data>
+  <data name="PropertyIdentifierAttributeBridgeAttributeMessageFormat" xml:space="preserve">
+    <value>[PropertyIdentifier] argument lambdas must directly indicate an instance property that has no Bridge attributes on the getter or setter</value>
+  </data>
+  <data name="PropertyIdentifierAttributeDirectPropertyTargetAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>[PropertyIdentifier] argument lambdas' targets must be direct accesses and may not include any casts or other indirection</value>
+  </data>
+  <data name="PropertyIdentifierAttributeInvalidDelegateMessageFormat" xml:space="preserve">
+    <value>[PropertyIdentifier] arguments must be a delegate that takes a single source reference and returns a property value from it (so it must be a two-argument delegate type)</value>
+  </data>
+  <data name="PropertyIdentifierAttributeReassignmentMessageFormat" xml:space="preserve">
+    <value>[PropertyIdentifier] arguments may not be reassigned (they may not be set directly to a new value and they may not be used to provide a ref or out argument in a method call)</value>
+  </data>
+  <data name="PropertyIdentifierAttributeSimplePropertyAccessorArgumentMessageFormat" xml:space="preserve">
+    <value>[PropertyIdentifier] argument lambdas must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property</value>
+  </data>
+  <data name="PropertyIdentifierAttributeTargetTypeNotSpecificEnoughMessageFormat" xml:space="preserve">
+    <value>The target type of the delegate is not specific enough - the specified property is of type "{0}" and so the delegate return type must be this type or one derived from it (which "{1}" is not)</value>
+  </data>
   <data name="TPropertyValueNotSpecificEnough" xml:space="preserve">
-    <value>TPropertyValue is a type that is less specialised than the indicated property (if the indicated property is a string, for example, then TPropertyValue may not be Object - TPropertyValue must match the property type precisely or be a type derived from it)</value>
+    <value>TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type "{0}" and so the type of the value that will be used to update the property must be this type or one derived from it (which "{1}" is not)</value>
   </data>
   <data name="WithAnalyserTitle" xml:space="preserve">
     <value>With should only be used in a particular manner</value>

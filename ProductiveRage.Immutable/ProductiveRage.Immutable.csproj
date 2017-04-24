@@ -42,6 +42,7 @@
     </Compile>
     <Compile Include="ImmutabilityHelpers.cs" />
     <Compile Include="IAmImmutable.cs" />
+    <Compile Include="PropertyIdentifierAttribute.cs" />
     <Compile Include="PropertyIdentifier.cs" />
     <Compile Include="NonNullList.cs" />
     <Compile Include="Set.cs" />

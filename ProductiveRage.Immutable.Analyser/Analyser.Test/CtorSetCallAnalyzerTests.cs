@@ -381,7 +381,11 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = CtorSetCallAnalyzer.DiagnosticId,
-				Message = CtorSetCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+				Message = string.Format(
+					CtorSetCallAnalyzer.PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule.MessageFormat.ToString(),
+					"string",
+					"Object"
+				),
 				Severity = DiagnosticSeverity.Error,
 				Locations = new[]
 				{

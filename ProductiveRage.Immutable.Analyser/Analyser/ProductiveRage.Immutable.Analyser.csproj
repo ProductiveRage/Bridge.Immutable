@@ -36,6 +36,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CommonAnalyser.cs" />
+    <Compile Include="PropertyIdentifierAttributeAnalyzer.cs" />
     <Compile Include="IAmImmutableAnalyzer.cs" />
     <Compile Include="IAmImmutableAutoPopulatorCodeFixProvider.cs" />
     <Compile Include="IAmImmutableAutoPopulatorAnalyzer.cs" />

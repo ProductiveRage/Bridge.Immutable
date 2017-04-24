@@ -224,7 +224,70 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TPropertyValue is a type that is less specialised than the indicated property (if the indicated property is a string, for example, then TPropertyValue may not be Object - TPropertyValue must match the property type precisely or be a type derived from it).
+        ///   Looks up a localized string similar to [PropertyIdentifier] arguments must follow prescribed guidelines.
+        /// </summary>
+        internal static string PropertyIdentifierAttributeAnalyserTitle {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeAnalyserTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [PropertyIdentifier] argument lambdas must directly indicate an instance property that has no Bridge attributes on the getter or setter.
+        /// </summary>
+        internal static string PropertyIdentifierAttributeBridgeAttributeMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeBridgeAttributeMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [PropertyIdentifier] argument lambdas&apos; targets must be direct accesses and may not include any casts or other indirection.
+        /// </summary>
+        internal static string PropertyIdentifierAttributeDirectPropertyTargetAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeDirectPropertyTargetAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [PropertyIdentifier] arguments must be a delegate that takes a single source reference and returns a property value from it (so it must be a two-argument delegate type).
+        /// </summary>
+        internal static string PropertyIdentifierAttributeInvalidDelegateMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeInvalidDelegateMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [PropertyIdentifier] arguments may not be reassigned (they may not be set directly to a new value and they may not be used to provide a ref or out argument in a method call).
+        /// </summary>
+        internal static string PropertyIdentifierAttributeReassignmentMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeReassignmentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [PropertyIdentifier] argument lambdas must directly indicate an instance property with a getter and a setter (which may be private) or that is a readonly auto-property.
+        /// </summary>
+        internal static string PropertyIdentifierAttributeSimplePropertyAccessorArgumentMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeSimplePropertyAccessorArgumentMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The target type of the delegate is not specific enough - the specified property is of type &quot;{0}&quot; and so the delegate return type must be this type or one derived from it (which &quot;{1}&quot; is not).
+        /// </summary>
+        internal static string PropertyIdentifierAttributeTargetTypeNotSpecificEnoughMessageFormat {
+            get {
+                return ResourceManager.GetString("PropertyIdentifierAttributeTargetTypeNotSpecificEnoughMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type &quot;{0}&quot; and so the type of the value that will be used to update the property must be this type or one derived from it (which &quot;{1}&quot; is not).
         /// </summary>
         internal static string TPropertyValueNotSpecificEnough {
             get {

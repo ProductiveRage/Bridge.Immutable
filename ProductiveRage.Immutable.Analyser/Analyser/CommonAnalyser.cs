@@ -15,7 +15,8 @@ namespace ProductiveRage.Immutable.Analyser
 		public static PropertyValidationResult GetPropertyRetrieverArgumentStatus(
 			ArgumentSyntax propertyRetrieverArgument,
 			SyntaxNodeAnalysisContext context,
-			ITypeSymbol propertyValueTypeIfKnown)
+			ITypeSymbol propertyValueTypeIfKnown,
+			out IPropertySymbol propertyIfSuccessfullyRetrieved)
 		{
 			if (propertyRetrieverArgument == null)
 				throw new ArgumentNullException(nameof(propertyRetrieverArgument));
@@ -26,17 +27,40 @@ namespace ProductiveRage.Immutable.Analyser
 			// class that may be cast to a Func<T, TProp> which means that the lambda validation need not apply (note that the lambda validation
 			// WILL be applied to the PropertyIdentifier<T, TProp> initialisations, so validation may not be bypassed in this manner - it's just
 			// moved around a bit)
+			// - Note: We don't have to worry about propertyValueTypeIfKnown here because the validation around ensuring that we don't use too
+			//   loose of a type will have been done when the PropertyIdentifier<T, TPropertyValue> was initialised 
 			if (IsPropertyIdentifierReference(propertyRetrieverArgument.Expression, context))
+			{
+				propertyIfSuccessfullyRetrieved = null;
 				return PropertyValidationResult.Ok;
+			}
+
+			// An alternative to generating and passing round PropertyIdentifier<T, TPropertyValue> references is to mark method arguments that are
+			// of the the appropriate lambda forms with the [PropertyIdentifier] attribute - then the parameter may be passed into a With or CtorSet
+			// method (since there will have been validation elsewhere to ensure that the argument passed to [PropertyIdentifier] parameter meets
+			// the criteria checked for below)
+			// - Note: We don't have to worry about propertyValueTypeIfKnown for the same reason as we don't above; the validation will have been
+			//   applied at the point at which the [PropertyIdentifier] argument was provided
+			if (IsPropertyIdentifierArgument(propertyRetrieverArgument.Expression, context))
+			{
+				propertyIfSuccessfullyRetrieved = null;
+				return PropertyValidationResult.Ok;
+			}
 
 			SimpleNameSyntax targetNameIfSimpleLambdaExpression;
 			if (propertyRetrieverArgument.Expression.Kind() != SyntaxKind.SimpleLambdaExpression)
+			{
+				propertyIfSuccessfullyRetrieved = null;
 				return PropertyValidationResult.NotSimpleLambdaExpression;
+			}
 			else
 			{
 				var propertyRetrieverExpression = (SimpleLambdaExpressionSyntax)propertyRetrieverArgument.Expression;
 				if (propertyRetrieverExpression.Body.Kind() != SyntaxKind.SimpleMemberAccessExpression)
+				{
+					propertyIfSuccessfullyRetrieved = null;
 					return PropertyValidationResult.NotSimpleLambdaExpression;
+				}
 
 				var memberAccess = (MemberAccessExpressionSyntax)propertyRetrieverExpression.Body;
 				if (memberAccess.Expression.Kind() != SyntaxKind.IdentifierName)
@@ -45,6 +69,7 @@ namespace ProductiveRage.Immutable.Analyser
 					// that all public gettable properties on the type can be checked for a setter while also allowing it to implement other
 					// interfaces which don't follow these rules, so long as those interfaces are explicitly implemented. If it was acceptable
 					// to cast the lambda target then this would not be possible.
+					propertyIfSuccessfullyRetrieved = null;
 					return PropertyValidationResult.IndirectTargetAccess;
 				}
 
@@ -56,16 +81,19 @@ namespace ProductiveRage.Immutable.Analyser
 			{
 				// We won't be able to retrieve a Symbol "if the given expression did not bind successfully to a single symbol" - this means
 				// that the code is not in a complete state. We can only identify errors when everything is properly written and consistent.
+				{
+					propertyIfSuccessfullyRetrieved = null;
 				return PropertyValidationResult.UnableToConfirmOrDeny;
 			}
+			}
 
-			var property = target as IPropertySymbol;
-			if (property == null)
+			propertyIfSuccessfullyRetrieved = target as IPropertySymbol;
+			if (propertyIfSuccessfullyRetrieved == null)
 				return PropertyValidationResult.LambdaDoesNotTargetProperty;
 
-			if (property.GetMethod == null)
+			if (propertyIfSuccessfullyRetrieved.GetMethod == null)
 				return PropertyValidationResult.MissingGetter;
-			if (HasDisallowedAttribute(property.GetMethod))
+			if (HasDisallowedAttribute(propertyIfSuccessfullyRetrieved.GetMethod))
 				return PropertyValidationResult.GetterHasBridgeAttributes;
 
 			// Note about looking for a setter: Previously, it was required that a property have a getter AND a setter, though it was fine for
@@ -81,7 +109,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// you're creative when considering a Bridge project since JavaScript is so malleable (so it doesn't seem worth going mad trying to
 			// make it impossible to circumvent, it's fine just to make it so that there's clearly some shenanigans going on and that everything
 			// will work if there isn't).
-			if ((property.SetMethod != null) && HasDisallowedAttribute(property.SetMethod))
+			if ((propertyIfSuccessfullyRetrieved.SetMethod != null) && HasDisallowedAttribute(propertyIfSuccessfullyRetrieved.SetMethod))
 				return PropertyValidationResult.SetterHasBridgeAttributes;
 
 			// Ensure that the property value is at least as specific a type as the target property. For example, if the target property is of
@@ -95,7 +123,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// "TPropertyValue" generic type argument of the With<T, TPropertyValue> is inferred (or explicitly specified) as object.
 			if ((propertyValueTypeIfKnown != null) && !(propertyValueTypeIfKnown is IErrorTypeSymbol))
 			{
-				if (!IsEqualToOrInheritsFrom(propertyValueTypeIfKnown, property.GetMethod.ReturnType))
+				if (!IsEqualToOrInheritsFrom(propertyValueTypeIfKnown, propertyIfSuccessfullyRetrieved.GetMethod.ReturnType))
 					return PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType;
 			}
 			return PropertyValidationResult.Ok;
@@ -160,6 +188,28 @@ namespace ProductiveRage.Immutable.Analyser
 				(typeOfExpression.Name == "PropertyIdentifier") &&
 				(typeOfExpression.ContainingAssembly != null) &&
 				(typeOfExpression.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
+		}
+
+		private static bool IsPropertyIdentifierArgument(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+		{
+			if (expression == null)
+				throw new ArgumentNullException(nameof(expression));
+
+			var parameter = context.SemanticModel.GetSymbolInfo(expression).Symbol as IParameterSymbol;
+			return (parameter != null) && HasPropertyIdentifierAttribute(parameter);
+		}
+
+		public static bool HasPropertyIdentifierAttribute(IParameterSymbol parameter)
+		{
+			if (parameter == null)
+				throw new ArgumentNullException(nameof(parameter));
+
+			var attributes = parameter.GetAttributes();
+			return attributes.Any(a =>
+				(a.AttributeClass.Name == "PropertyIdentifierAttribute") &&
+				(a.AttributeClass.ContainingAssembly != null) &&
+				(a.AttributeClass.ContainingAssembly.Name == AnalyserAssemblyName)
+			);
 		}
 
 		private static bool IsEqualToOrInheritsFrom(ITypeSymbol symbol, ITypeSymbol baseTypeSymbol) // Based on http://stackoverflow.com/a/28247330/3813189

@@ -100,6 +100,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="PropertyIdentifierAttributeAnalyzerTests.cs" />
     <Compile Include="Helpers\CodeFixVerifier.Helper.cs" />
     <Compile Include="IAmImmutableAnalyzerTests.cs" />
     <Compile Include="Verifiers\CodeFixVerifier.cs" />

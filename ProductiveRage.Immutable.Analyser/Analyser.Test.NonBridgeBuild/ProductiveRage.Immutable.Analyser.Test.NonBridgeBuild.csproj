@@ -46,6 +46,9 @@
     <Compile Include="..\..\ProductiveRage.Immutable\PropertyIdentifier.cs">
       <Link>PropertyIdentifier.cs</Link>
     </Compile>
+    <Compile Include="..\..\ProductiveRage.Immutable\PropertyIdentifierAttribute.cs">
+      <Link>PropertyIdentifierAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\..\ProductiveRage.Immutable\Set.cs">
       <Link>Set.cs</Link>
     </Compile>
