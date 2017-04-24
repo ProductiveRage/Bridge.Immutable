@@ -132,38 +132,38 @@ This also demonstrates the generic static function "For" that may be used when y
 
 I can't take too much credit for this part of the code since I started from the "[Optional](https://github.com/AArnott/ImmutableObjectGraph/blob/f1b0e44ea472d2d31423a54a695d9cdd3b3ca510/src/ImmutableObjectGraph/Optional%601.cs)" struct in Andrew Arnott's [ImmutableObjectGraph](https://github.com/AArnott/ImmutableObjectGraph) repo, which is another project that has a similar goal - though for regular C#, rather than Bridge. It's also coming to the end (I believe) of an upheaval, moving from using T4 templates to Roslyn. Should be interesting! (Information accurate as of 12th December 2015).
 
-## Sets
+## NonNullLists
 
-Finally, there is also a simple list-like type in the library; **Set&lt;T&gt;**. This is an immutable collection of objects (using a linked list internally to allow sharing of data between instances where possible, in order to avoid throwing even more work at the GC than necessary). It *also* will not accept any null values - if a collection must support not having values for some of the elements then it should be of type **Set&lt;Optional&lt;T&gt;&gt;**.
+Finally, there is also a simple list-like type in the library; **NonNullList&lt;T&gt;**. This is an immutable collection of objects (using a linked list internally to allow sharing of data between instances where possible, in order to avoid throwing even more work at the GC than necessary). It *also* will not accept any null values - if a collection must support not having values for some of the elements then it should be of type **NonNullList&lt;Optional&lt;T&gt;&gt;**.
 
 It currently only has a minimal interface of:
 
-	static Set<T> Empty { get; }
+	static NonNullList<T> Empty { get; }
 	
 	uint Count { get; }
 	T this[uint index] { get; }
-	Set<T> SetValue(uint index, T value)
-	Set<T> Insert(T item); // Inserts at the start of the set
+	NonNullList<T> SetValue(uint index, T value)
+	NonNullList<T> Insert(T item); // Inserts at the start of the list
 	
 It implements **IEnumerable&lt;T&gt;** so that it will play nicely with other code.
 
 And there's another static helper function "Of" -
 
-	var items = Set.Of("One", "Two", "Three");
+	var items = NonNullList.Of("One", "Two", "Three");
 	
 Again, C#'s type inference means that you don't need to specify the type when you call "Of". But also note that null references are still not acceptable here. If you wanted to declare a list of strings that may or may not contain null references then you would have to do something like
 
-	var items = Set.Of<Optional<string>>("One", "Two", "Three");
+	var items = NonNullList.Of<Optional<string>>("One", "Two", "Three");
 	
 or
 
-	var items = Set.Of(Optional.For("One"), Optional.For("Two"), Optional.For("Three"));
+	var items = NonNullList.Of(Optional.For("One"), Optional.For("Two"), Optional.For("Three"));
 
 There is a "With" extension method that makes working with sets a little easier. If you have a class such as:
 
 	public class PersonDetails : IAmImmutable
 	{
-		public PersonDetails(int id, NameDetails name, Set<PersonDetails> staff)
+		public PersonDetails(int id, NameDetails name, NonNullList<PersonDetails> staff)
 		{
 			this.CtorSet(_ => _.Id, id);
 			this.CtorSet(_ => _.Name, name);
@@ -171,7 +171,7 @@ There is a "With" extension method that makes working with sets a little easier.
 		}
 		public int Id { get; private set; }
 		public NameDetails Name { get; private set; }
-		public Set<PersonDetails> Staff { get; private set; }
+		public NonNullList<PersonDetails> Staff { get; private set; }
 	}
 
 .. and you wanted to update the third entry in an instance's "Staff" set, then you could do something like the following:
