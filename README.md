@@ -178,25 +178,9 @@ There is a "With" extension method that makes working with sets a little easier.
 
 	p = p.With(_ => _.Staff, 2, joe);
 
-## Caveats
+## Analysers
 
-This is still early days. I might decide in a couple of months that this was an interesting experiment but ultimately not something to continue. Maybe an awesome code-gen option will come to light and I'll prefer that. Maybe other people I work with will be unwilling to accept this sort of code because it looks "weird" with its property identifier lambdas.
-
-Right now, though, I'm excited about how this makes writing immutable classes easier *and* I had fun writing the sort-of reflection code for the JavaScript that Bridge.NET generates (Bridge v2 will have full support for reflection but the release schedule, as of December 2015, is still pending - this library is for Bridge 1.x).
-
-~~However, there *is* one thing that I don't like. If you don't use the expected property identifier format -~~
-
-	// This is all good if Id is a property
-	this.CtorSet(_ => _.Id, id);
-	
-	// This is bad but will, unfortunately, compile
-	this.CtorSet(_ => _.Id + 1, id);
-	
-~~.. then you'll get a runtime exception. Likewise if the property that is specified does not have both a setter and a getter (a private getter and/or setter is fine but *no* getter/setter is a problem). If the getter or setter use one of Bridge's attributes that change the names of functions in the JavaScript then that too will result in a runtime exception (such as the [[Name]](http://bridge.net/kb/attribute-reference/#Name) or [[Template]](http://bridge.net/kb/attribute-reference/#Template) attributes).~~
-
-The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception ~~- and these property identifiers only being validated at runtime is less-than-ideal in my eyes. I have great hope, however, that a  Roslyn-based Analyser will be able to ensure that things are written as expected *and pick up on it at compile-time, before the code is ever executed*. And that is my next step.~~
-
-**Update:** This solution now comes with its own Roslyn-based Analysers (which are distributed with the NuGet package) that addresses this problem! The Analysers look at your source code that makes "CtorSet" or "With" calls and ensures that the property Identifier lambda meets the requirements. Now the following *will* get identified as an error -
+The reason that I like immutability is that it gives me guarantees about data. And the reason that I like strongly-typed code is that I like to know sooner, rather than later, when code has been written that will try to break these sorts of guarantees. Having the compiler alert me to a broken rule is much preferable to a runtime exception. In that spirit, there are Roslyn Analysers included in the NuGet package that ensure that some mistakes may be avoided that would be valid C# but that would cause runtime problems with the immutable classes. They look at your source code that makes "CtorSet" or "With" calls and ensures that the property Identifier delegates meets the requirements (essentially that they are simple property accessors and that the target properties do not engage in any funny business, such as having Bridge attributes on that could make them act in strange ways at runtime). As an example, the following will get identified as an error -
 
 	// Identified as an error by the Analyser:
 	//
