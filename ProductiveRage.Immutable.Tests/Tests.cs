@@ -8,11 +8,54 @@ namespace ProductiveRage.Immutable.Tests
 		[Ready]
 		public static void Go()
 		{
+			OptionalTests();
+			CtorSetTests();
+			WithTests();
+		}
+
+		private static void OptionalTests()
+		{
+			QUnit.Module("OptionalTests");
+
+			QUnit.Test("Optional.Map from one string to another", assert =>
+			{
+				var x = Optional.For("abc");
+				x = x.Map(_ => _ + _);
+				assert.Equal(x.IsDefined, true);
+				assert.Equal(x.Value, "abcabc");
+			});
+
+			// I don't expect this to be a common thing to do but it makes more sense to allow a null result from a mapper to result in a Missing
+			// response than for it to throw its toys out the pram
+			QUnit.Test("Optional.Map from one string to null (should return Missing)", assert =>
+			{
+				var x = Optional.For("abc");
+				x = x.Map<string>(_ => null);
+				assert.Equal(x.IsDefined, false);
+			});
+
+			QUnit.Test("Optional.Map from one string to itself (should return same instance back)", assert =>
+			{
+				var x = Optional.For("abc");
+				var updatedX = x.Map(_ => _);
+				assert.StrictEqual(updatedX, x);
+			});
+		}
+
+		private static void CtorSetTests()
+		{
+			QUnit.Module("CtorSetTests");
+
 			QUnit.Test("Simple string property CtorSet initialisation", assert =>
 			{
 				var x = new SomethingWithStringId("abc");
 				assert.Equal(x.Id, "abc");
 			});
+		}
+
+		private static void WithTests()
+		{
+			QUnit.Module("WithTests");
 
 			QUnit.Test("Simple string property update using With directly", assert =>
 			{

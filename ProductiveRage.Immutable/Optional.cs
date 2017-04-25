@@ -48,6 +48,33 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
+		/// If this Optional instance has a value then the value will be transformed using the specified mapper. If this instance
+		/// does not have a value or if the mapper returns null then a Missing Optional-of-TResult will be returned.
+		/// </summary>
+		public Optional<TResult> Map<TResult>(Func<T, TResult> mapper)
+		{
+			if (mapper == null)
+				throw new ArgumentNullException(nameof(mapper));
+
+			if (IsDefined)
+			{
+				var newValue = mapper(value);
+				if (newValue == null)
+					return Optional<TResult>.Missing;
+				if ((typeof(TResult) == typeof(T)) && newValue.Equals(Value))
+				{
+					// If the destination type is the same as the current type and the new value is the same as the existing value
+					// then just return this instance immediately, rather than creating a new issue. We can't perform a cast because
+					// the compiler will complain.
+					return Script.Write<Optional<TResult>>("this");
+				}
+				return mapper(value);
+			}
+
+			// Don't need to worry about returning new instances here, the "Missing" value is shared across all Optional<T> instances
+			return Optional<TResult>.Missing;
+		}
+		/// <summary>
 		/// Implicitly wraps the specified value as an Optional.
 		/// </summary>
 		public static implicit operator Optional<T>(T value)
