@@ -470,6 +470,55 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
+		/// <summary>
+		/// It was originally intended that With calls would have inline lambdas tha specify the property but this was a bit limiting in places so the GetProperty method
+		/// was added which would generate a property-retriever instance but even this got a bit cumbersome in places and so now there is support for a delegate to be passed
+		/// to a function that may be used as a property retriever but it must be annotated with the [PropertyIdentifier] attribute so that we can ensure that it is always
+		/// provided with an acceptable value. If a delegate method argument is used but the attribute is forgotten then the generic error about a property-accessing lambda
+		/// message is shown but it would be better to say a bit more and suggest that it's just a case of a forgotten [PropertyIdentifier] attribute and not that it's not
+		/// possible to pass a property identifier delegate as a method parameter.
+		/// </summary>
+		[TestMethod]
+		public void HelpfulMessageShouldBeDisplayedIfPropertyIdentifierAttributeIsForgotten()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public SomethingWithAnId UpdateId(SomethingWithAnId target, Func<SomethingWithAnId, string> propertyIdentifier, string newId)
+						{
+							return target.With(propertyIdentifier, newId);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(string id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public string Id { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = WithCallAnalyzer.DiagnosticId,
+				Message = WithCallAnalyzer.MethodParameterWithoutPropertyIdentifierAttributeRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 11, 27)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new WithCallAnalyzer();

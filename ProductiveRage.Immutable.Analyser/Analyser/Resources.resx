@@ -171,6 +171,9 @@
   <data name="IAmImmutableValidationShouldNotBePerformedInConstructor" xml:space="preserve">
     <value>When new IAmImmutable instances are created via "With" calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a "Validate" method to the class and call it at the end of the constructor, it will also be called whenever "With"creates a new instance. The "Validate" method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private).</value>
   </data>
+  <data name="MethodParameterWithoutPropertyIdentifierAttribute" xml:space="preserve">
+    <value>The propertyRetriever must be a simple in-place property-accessing lambda or a PropertyIdentifier&lt;T, TPropertyValue&gt; instance or a method argument with a [PropertyIdentifier] attribute - here it is a method argument that is a delegate type but without a [PropertyIdentifier] attribute, did you forget to add it?</value>
+  </data>
   <data name="PropertyIdentifierAttributeAnalyserTitle" xml:space="preserve">
     <value>[PropertyIdentifier] arguments must follow prescribed guidelines</value>
   </data>

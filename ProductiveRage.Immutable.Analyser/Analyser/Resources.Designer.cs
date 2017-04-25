@@ -224,6 +224,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The propertyRetriever must be a simple in-place property-accessing lambda or a PropertyIdentifier&lt;T, TPropertyValue&gt; instance or a method argument with a [PropertyIdentifier] attribute - here it is a method argument that is a delegate type but without a [PropertyIdentifier] attribute, did you forget to add it?.
+        /// </summary>
+        internal static string MethodParameterWithoutPropertyIdentifierAttribute {
+            get {
+                return ResourceManager.GetString("MethodParameterWithoutPropertyIdentifierAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [PropertyIdentifier] arguments must follow prescribed guidelines.
         /// </summary>
         internal static string PropertyIdentifierAttributeAnalyserTitle {

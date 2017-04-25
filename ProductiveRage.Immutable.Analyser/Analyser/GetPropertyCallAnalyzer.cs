@@ -44,6 +44,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor MethodParameterWithoutPropertyIdentifierAttributeRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.GetPropertyAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.MethodParameterWithoutPropertyIdentifierAttribute)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -53,7 +61,8 @@ namespace ProductiveRage.Immutable.Analyser
 					SimplePropertyAccessorArgumentAccessRule,
 					IndirectTargetAccessorAccessRule,
 					BridgeAttributeAccessRule,
-					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule
+					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
+					MethodParameterWithoutPropertyIdentifierAttributeRule
 				);
 			}
 		}
@@ -141,6 +150,13 @@ namespace ProductiveRage.Immutable.Analyser
 						invocation.GetLocation(),
 						propertyIfSuccessfullyRetrieved.GetMethod.ReturnType, // This will always have a value if we got PropertyIsOfMoreSpecificTypeThanSpecificValueType back
 						propertyValueTypeIfKnown.Name
+					));
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.MethodParameterWithoutPropertyIdentifierAttribute:
+					context.ReportDiagnostic(Diagnostic.Create(
+						MethodParameterWithoutPropertyIdentifierAttributeRule,
+						propertyRetrieverArgument.GetLocation()
 					));
 					return;
 			}

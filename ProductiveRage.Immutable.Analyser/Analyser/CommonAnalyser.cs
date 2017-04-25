@@ -41,10 +41,19 @@ namespace ProductiveRage.Immutable.Analyser
 			// the criteria checked for below)
 			// - Note: We don't have to worry about propertyValueTypeIfKnown for the same reason as we don't above; the validation will have been
 			//   applied at the point at which the [PropertyIdentifier] argument was provided
-			if (IsPropertyIdentifierArgument(propertyRetrieverArgument.Expression, context))
+			bool isNotPropertyIdentifierButIsMethodParameterOfDelegateType;
+			if (IsPropertyIdentifierArgument(propertyRetrieverArgument.Expression, context, out isNotPropertyIdentifierButIsMethodParameterOfDelegateType))
 			{
 				propertyIfSuccessfullyRetrieved = null;
 				return PropertyValidationResult.Ok;
+			}
+			else if (isNotPropertyIdentifierButIsMethodParameterOfDelegateType)
+			{
+				// If it the property identifier is a method argument value and it's a delegate but it doesn't have the [PropertyIdentifier] attribute
+				// on it then it seems likely that the user has just forgotten it (or is not aware of it) so, instead of showing the more generic
+				// NotSimpleLambdaExpression warning, allow the analyser to show a more helpful message.
+				propertyIfSuccessfullyRetrieved = null;
+				return PropertyValidationResult.MethodParameterWithoutPropertyIdentifierAttribute;
 			}
 
 			SimpleNameSyntax targetNameIfSimpleLambdaExpression;
@@ -143,6 +152,8 @@ namespace ProductiveRage.Immutable.Analyser
 
 			PropertyIsOfMoreSpecificTypeThanSpecificValueType,
 
+			MethodParameterWithoutPropertyIdentifierAttribute,
+
 			UnableToConfirmOrDeny
 		}
 
@@ -190,13 +201,36 @@ namespace ProductiveRage.Immutable.Analyser
 				(typeOfExpression.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
 		}
 
-		private static bool IsPropertyIdentifierArgument(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+		private static bool IsPropertyIdentifierArgument(ExpressionSyntax expression, SyntaxNodeAnalysisContext context, out bool isNotPropertyIdentifierButIsMethodParameterOfDelegateType)
 		{
 			if (expression == null)
 				throw new ArgumentNullException(nameof(expression));
 
+			// Does the expression reference a parameter of the current method?
 			var parameter = context.SemanticModel.GetSymbolInfo(expression).Symbol as IParameterSymbol;
-			return (parameter != null) && HasPropertyIdentifierAttribute(parameter);
+			if (parameter == null)
+			{
+				isNotPropertyIdentifierButIsMethodParameterOfDelegateType = false;
+				return false;
+			}
+
+			// Does this parameter have the [PropertyIdentifier] attribute? If so, exit now - we'll not bother trying to ensure that the
+			// parameter is of an appropriate delegate type, that task should be handled elsewhere (in the PropertyIdentifierAttributeAnalyzer)
+			if (HasPropertyIdentifierAttribute(parameter))
+			{
+				isNotPropertyIdentifierButIsMethodParameterOfDelegateType = false;
+				return true;
+			}
+
+			// If it's not a [PropertyIdentifier] parameter but the parameter IS a delegate then return this information - it will allow us to
+			// generate more useful warnings (such as "you are trying to specify a delegate-type method parameter value, did you mean to use the
+			// [PropertyIdentifier] attriute?" instead of just saying "must be a simple property-accessing lambda").
+			var parameterTypeNamedSymbol = parameter.Type as INamedTypeSymbol;
+			isNotPropertyIdentifierButIsMethodParameterOfDelegateType =
+				(parameterTypeNamedSymbol != null) &&
+				(parameterTypeNamedSymbol.DelegateInvokeMethod != null) &&
+				!parameterTypeNamedSymbol.DelegateInvokeMethod.ReturnsVoid;
+			return false;
 		}
 
 		public static bool HasPropertyIdentifierAttribute(IParameterSymbol parameter)
