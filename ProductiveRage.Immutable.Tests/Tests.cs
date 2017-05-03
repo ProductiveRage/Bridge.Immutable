@@ -1,5 +1,6 @@
 ﻿using Bridge.Html5;
 using Bridge.QUnit;
+using ProductiveRage.SealedClassVerification;
 
 namespace ProductiveRage.Immutable.Tests
 {
@@ -51,6 +52,15 @@ namespace ProductiveRage.Immutable.Tests
 				var x = new SomethingWithStringId("abc");
 				assert.Equal(x.Id, "abc");
 			});
+
+			QUnit.Test("CtorSet may not be called outside of the constructor (only works if CtorSet is set consistently within the constructor)", assert =>
+			{
+				var x = new SomethingWithStringId("abc");
+				assert.Throws(
+					() => x.CtorSet(_ => _.Id, "abc"),
+					"CtorSet should throw if called outside of the constructor (since it should only be called once per property and the constructor should call it for all properties)"
+				);
+			});
 		}
 
 		private static void WithTests()
@@ -62,6 +72,23 @@ namespace ProductiveRage.Immutable.Tests
 				var x = new SomethingWithStringId("abc");
 				x = x.With(_ => _.Id, "def");
 				assert.Equal(x.Id, "def");
+			});
+
+			QUnit.Test("Simple string property update against an interface using With directly", assert =>
+			{
+				// Inspired by issue https://github.com/ProductiveRage/Bridge.Immutable/issues/4
+				IAmImmutableAndHaveName viaInterfacePerson = new PersonDetails(1, "test");
+				viaInterfacePerson = viaInterfacePerson.With(_ => _.Name, "test2");
+				assert.Equal(viaInterfacePerson.Name, "test2");
+			});
+
+			QUnit.Test("Simple string property update of property on a base class using With directly", assert =>
+			{
+				// This test is just to ensure that there's no monkey business involved when targeting properties on a base class (as there are
+				// with interface properties - see above)
+				var x = new SecurityPersonDetails(1, "test", 10);
+				x = x.With(_ => _.Name, "test2");
+				assert.Equal(x.Name, "test2");
 			});
 
 			QUnit.Test("Simple string property update using With indirectly", assert =>
@@ -122,6 +149,32 @@ namespace ProductiveRage.Immutable.Tests
 				this.CtorSet(_ => _.Values, values);
 			}
 			public NonNullList<string> Values { get; }
+		}
+
+		public sealed class SecurityPersonDetails : PersonDetails
+		{
+			public SecurityPersonDetails(int key, string name, int securityClearance) : base(key, name)
+			{
+				this.CtorSet(_ => _.SecurityClearance, securityClearance);
+			}
+			public int SecurityClearance { get; }
+		}
+
+		[DesignedForInheritance]
+		public class PersonDetails : IAmImmutableAndHaveName
+		{
+			public PersonDetails(int key, string name)
+			{
+				this.CtorSet(_ => _.Key, key);
+				this.CtorSet(_ => _.Name, name);
+			}
+			public int Key { get; }
+			public string Name { get; }
+		}
+
+		public interface IAmImmutableAndHaveName : IAmImmutable
+		{
+			string Name { get; }
 		}
 	}
 }

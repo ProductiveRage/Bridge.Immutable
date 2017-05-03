@@ -21,7 +21,6 @@ namespace ProductiveRage.Immutable
 		/// on a reference (if that reference did not lock all of the properties in its constructor) then it will only operate against types that implement the
 		/// IAmImmutable interface - this is an empty interface whose only purpose is to identify a class that has been designed to work with this process.
 		/// </summary>
-
 		[IgnoreGeneric]
 		public static void CtorSet<T, TPropertyValue>(this T source, Func<T, TPropertyValue> propertyIdentifier, TPropertyValue value) where T : IAmImmutable
 		{
@@ -378,9 +377,11 @@ namespace ProductiveRage.Immutable
 				};
 			}
 
-			// 2016-10-21 DWR: Split out "return {0}.get" into two segments since Bridge uses aliases for properties if a class is cast to an interface and an interface
-			// property is being specified for update (eg. "function (_) { return _.Example$IHaveName$getName(); }" instead of function (_) { return _.getName(); }").
-			// If the property is being accessed directly (and not via an interface) then there will be type alias prefix.
+			// Note: A property specified directly on the target type will be specified using the simple format "function (_) { return _.Name; }" (before Bridge 16, there
+			// were custom getter and setter functions - eg. "function (_) { return _.getName(); }" - but now it uses ES5 properties and so the simpler version appears in
+			// the generated JavaScript. If the target property is specified via an interface cast then an alias property name will be used (in case there is a property on
+			// the target type with the same name as the interface property and then the interface property is implemented explicitly) - it will look something like
+			// "function (_) { return _.Example$IHaveName$Name; }" and we need to correctly handle that below too.
 			var regExSegments = new[] {
 				AsRegExSegment(string.Format(
 					"function ({0}) {{",
@@ -390,8 +391,7 @@ namespace ProductiveRage.Immutable
 					"return {0}.",
 					argumentName
 				)),
-				AsRegExSegment("get"),
-				AsRegExSegment("(); }")
+				AsRegExSegment("; }")
 			};
 			var expectedFunctionFormatMatcher = new JsRegex(
 				string.Join("([.\\s\\S]*?)", regExSegments)
@@ -399,24 +399,21 @@ namespace ProductiveRage.Immutable
 			var propertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
 			var propertyNameMatchResults = expectedFunctionFormatMatcher.Exec(propertyIdentifierStringContent);
 			if (propertyNameMatchResults == null)
-				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.getName(); }\", rather than \"" + propertyIdentifierStringContent + "\"");
+				throw new ArgumentException("The specified propertyIdentifier function did not match the expected format - must be a simple property get, such as \"function(_) { return _.Name; }\", rather than \"" + propertyIdentifierStringContent + "\"");
 
 			var typeAliasPrefix = propertyNameMatchResults[propertyNameMatchResults.Length - 2]; ;
 			var propertyName = propertyNameMatchResults[propertyNameMatchResults.Length - 1];
-			var propertyGetterName = typeAliasPrefix + "get" + propertyName;
-			var propertySetterName = typeAliasPrefix + "set" + propertyName;
-			var hasFunctionWithExpectedSetterName = false;
-			var hasExpectedSetter = false;
-			/*@var setter = source[propertySetterName];
-				hasFunctionWithExpectedSetterName = (typeof(setter) === "function");
-				if (hasFunctionWithExpectedSetterName) {
-					hasExpectedSetter = (setter.length === 1); // Ensure that it takes precisely one argument
-				}
-				var getter = source[propertyGetterName];*/
-			if (!hasFunctionWithExpectedSetterName)
-				throw new ArgumentException("Failed to find expected property setter \"" + propertySetterName + "\"");
-			else if (!hasExpectedSetter)
-				throw new ArgumentException("Property setter does not match expected format (single argument): \"" + propertySetterName + "\"");
+
+			var propertyDescriptorIfDefined = TryToGetPropertyDescriptor(source, propertyName);
+			if (propertyDescriptorIfDefined == null)
+				throw new ArgumentException("Failed to find expected property \"" + propertyName + "\" (could not retrieve PropertyDescriptor)");
+
+			var setter = propertyDescriptorIfDefined.OptionalSetter;
+			if (Script.Write<bool>("!setter"))
+				throw new ArgumentException("Failed to retrieve expected property setter for \"" + propertyName + "\"");
+			var hasExpectedSetter = Script.Write<bool>("(typeof(setter) === \"function\") && (setter.length === 1)");
+			if (!hasExpectedSetter)
+				throw new ArgumentException("Property setter does not match expected format (single argument function) for \"" + propertyName + "\"");
 
 			return (target, newValue, ignoreAnyExistingLock) =>
 			{
@@ -426,16 +423,42 @@ namespace ProductiveRage.Immutable
 					if (!isLocked) {
 						setter.apply(target, [newValue]);
 						target[propertyLockName] = true;
-						if (typeof(target[propertyGetterName]) === "function") {
-							target[propertyGetterName].$scaffolding = true;
-						}
-						if (typeof(target[propertySetterName]) === "function") {
-							target[propertySetterName].$scaffolding = true;
-						}
 					}*/
 				if (isLocked)
 					throw new ArgumentException("This property has been locked - it should only be set within the constructor");
 			};
+		}
+
+		private static PropertyDescriptor TryToGetPropertyDescriptor(object source, string name)
+		{
+			if (source == null)
+				throw new ArgumentNullException(nameof(source));
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentNullException($"Null/blank {nameof(name)} specified");
+
+			// Based upon code at http://code.fitness/post/2016/01/javascript-enumerate-methods.html
+			/*@
+			var proto = Object.getPrototypeOf(source);
+			while (proto)
+			{
+				var descriptor = Object.getOwnPropertyDescriptor(proto, name);
+				if (descriptor) {
+					return descriptor;
+				}
+				proto = Object.getPrototypeOf(proto);
+			}
+			*/
+			return null;
+		}
+
+		[External]
+		[ObjectLiteral(ObjectCreateMode.Plain)]
+		private sealed class PropertyDescriptor
+		{
+			[Name("get")]
+			public Func<object> OptionalGetter { get; }
+			[Name("set")]
+			public Action<object> OptionalSetter { get; }
 		}
 
 		private static string AsRegExSegment(string value)
