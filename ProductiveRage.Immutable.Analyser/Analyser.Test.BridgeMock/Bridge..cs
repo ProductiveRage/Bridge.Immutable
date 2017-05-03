@@ -23,7 +23,7 @@ namespace Bridge
 
 	public static class Script
 	{
-		public static T Write<T>(string script) { throw new NotImplementedException(); }
+		public static T Write<T>(string script, params object[] args) { throw new NotImplementedException(); }
 		public static void Write(string script, params object[] args) { throw new NotImplementedException(); }
 	}
 

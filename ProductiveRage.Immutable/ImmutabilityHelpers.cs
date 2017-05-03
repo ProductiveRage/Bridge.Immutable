@@ -362,7 +362,7 @@ namespace ProductiveRage.Immutable
 					)),
 					AsRegExSegment("; }")
 				};
-				var objectLiteralExpectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
+				var objectLiteralExpectedFunctionFormatMatcher = new JsRegex(
 					string.Join("([.\\s\\S]*?)", objectLiteralRegExSegments)
 				);
 				var objectLiteralPropertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
@@ -393,7 +393,7 @@ namespace ProductiveRage.Immutable
 				AsRegExSegment("get"),
 				AsRegExSegment("(); }")
 			};
-			var expectedFunctionFormatMatcher = new Bridge.Text.RegularExpressions.Regex(
+			var expectedFunctionFormatMatcher = new JsRegex(
 				string.Join("([.\\s\\S]*?)", regExSegments)
 			);
 			var propertyIdentifierStringContent = GetNormalisedFunctionStringRepresentation(propertyIdentifier);
@@ -497,10 +497,10 @@ namespace ProductiveRage.Immutable
 		}
 
 		// See http://stackoverflow.com/a/9924463 for more details
-		private readonly static Bridge.Text.RegularExpressions.Regex STRIP_COMMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+		private readonly static JsRegex STRIP_COMMENTS = Script.Write<JsRegex>(
 			@"/(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|(""(?:\\""|[^""\r\n])*""))|(\s*=[^,\)]*))/mg"
 		);
-		private readonly static Bridge.Text.RegularExpressions.Regex WHITESPACE_SEGMENTS = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+		private readonly static JsRegex WHITESPACE_SEGMENTS = Script.Write<JsRegex>(
 			@"/\s+/g"
 		);
 		[IgnoreGeneric]
@@ -509,14 +509,14 @@ namespace ProductiveRage.Immutable
 			if (propertyIdentifier == null)
 				throw new ArgumentNullException("propertyIdentifier");
 
-			return GetFunctionStringRepresentation(propertyIdentifier)
-				.Replace(STRIP_COMMENTS, "")
-				.Replace(WHITESPACE_SEGMENTS, "")
-				.Trim();
+			var content = GetFunctionStringRepresentation(propertyIdentifier);
+			content = Replace(content, STRIP_COMMENTS, "");
+			content = Replace(content, WHITESPACE_SEGMENTS, "");
+			return content.Trim();
 		}
 
 		// Courtesy of http://stackoverflow.com/a/3561711
-		private readonly static Bridge.Text.RegularExpressions.Regex ESCAPE_FOR_REGEX = Script.Write<Bridge.Text.RegularExpressions.Regex>(
+		private readonly static JsRegex ESCAPE_FOR_REGEX = Script.Write<JsRegex>(
 			@"/[-\/\\^$*+?.()|[\]{}]/g"
 		);
 		private static string EscapeForReg(string value)
@@ -566,6 +566,21 @@ namespace ProductiveRage.Immutable
 				hash = hash ^ (23 + PropertyIdentifierFunctionString.GetHashCode());
 				return hash;
 			}
+		}
+
+		private static string Replace(string source, JsRegex regEx, string replaceWith)
+		{
+			return Script.Write<string>("{0}.replace({1}, {2})", source, regEx, replaceWith);
+		}
+
+		[External]
+		[Name("RegExp")]
+		private sealed class JsRegex
+		{
+			public JsRegex(string pattern) { }
+
+			[Name("exec")]
+			public extern string[] Exec(string s);
 		}
 	}
 }
