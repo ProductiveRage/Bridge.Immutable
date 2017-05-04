@@ -276,12 +276,25 @@ namespace ProductiveRage.Immutable
 			if (source == null)
 				throw new ArgumentNullException("source");
 
-			// The simplest way to clone a generic reference seems to be a combination of Object.create and then copying the properties from the source to the clone (copying
-			// may not be done from the prototype since there may be instance data that must be carried across)
-			T clone = Script.Write<T>("Object.create(source.constructor.prototype)");
-			/*@for (var i in source) {
-				clone[i] = source[i];
-			}*/
+			// Although Bridge uses defineProperty to configure properties on classes now, rather than using a custom version based around getter and setter methods, it still
+			// does has some funky business - the get and set methods in the properties look in an $init object recorded against the object, which contains the property values.
+			// So, in order to clone an object, we need to create a new one based upon the same prototype and then we need to create an $init object on that new reference and
+			// copy all of the values over from the old to the new. Then we need to copy the "_{PropertyName}__Lock" values over that this library puts on references (to be
+			// honest, they could possibly be removed - the offer runtime protection that CtorSet is not used outside of a constructor and there is an analyser for that).
+			T clone = Script.Write<T>("Object.create(Object.getPrototypeOf(source))");
+			/*@
+			clone.$init = {};
+			for (var name in source.$init) {
+				if (source.$init.hasOwnProperty(name)) {
+					clone.$init[name] = source.$init[name];
+				}
+			}
+			for (var name in source) {
+				if (source.hasOwnProperty(name) && (name.substr(0, 2) === "__") && (name.substr(-5) === "_Lock")) {
+					clone[name] = source[name];
+				}
+			}
+			*/
 			return clone;
 		}
 

@@ -74,12 +74,12 @@ namespace ProductiveRage.Immutable.Tests
 				assert.Equal(x.Id, "def");
 			});
 
-			QUnit.Test("Simple string property update against an interface using With directly", assert =>
+			QUnit.Test("With does not affect original instance", assert =>
 			{
-				// Inspired by issue https://github.com/ProductiveRage/Bridge.Immutable/issues/4
-				IAmImmutableAndHaveName viaInterfacePerson = new PersonDetails(1, "test");
-				viaInterfacePerson = viaInterfacePerson.With(_ => _.Name, "test2");
-				assert.Equal(viaInterfacePerson.Name, "test2");
+				var x0 = new SomethingWithStringId("abc");
+				var x1 = x0.With(_ => _.Id, "def");
+				assert.Equal(x0.Id, "abc");
+				assert.Equal(x1.Id, "def");
 			});
 
 			QUnit.Test("Simple string property update of property on a base class using With directly", assert =>
@@ -130,6 +130,23 @@ namespace ProductiveRage.Immutable.Tests
 				var propertyToUpdate = x.GetProperty(_ => _.Values);
 				x = x.With<SomethingWithNonNullListStringValues, string>(propertyToUpdate, 1, "xyz");
 				assert.Equal(x.Values[1], "xyz");
+			});
+
+			// When first changing the Clone behaviour within ImmutabilityHelpers to work with Bridge 16 (which changes how properties are defined on objects), there was a
+			// bug introduced where the updating properties on the clone would update the values on the original value too! These tests confirm that that bug is no more.
+			QUnit.Test("Simple string property update against an interface using With directly", assert =>
+			{
+				// Inspired by issue https://github.com/ProductiveRage/Bridge.Immutable/issues/4
+				IAmImmutableAndHaveName viaInterfacePerson = new PersonDetails(1, "test");
+				viaInterfacePerson = viaInterfacePerson.With(_ => _.Name, "test2");
+				assert.Equal(viaInterfacePerson.Name, "test2");
+			});
+			QUnit.Test("Double-check must-not-affect-original-instance when targeting property on base class", assert =>
+			{
+				var x0 = new SecurityPersonDetails(1, "test", 10);
+				var x1 = x0.With(_ => _.Name, "test2");
+				assert.Equal(x0.Name, "test");
+				assert.Equal(x1.Name, "test2");
 			});
 		}
 
