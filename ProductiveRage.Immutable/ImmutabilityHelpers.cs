@@ -185,6 +185,49 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
+		/// This will take a source reference, a lambda that identifies the getter of a property on the source type that is a NonNullList, an index that must exist within the
+		/// current value for the specified property on the source reference and a delegate that takes the current value for that list item and returns a replacement. The same
+		/// restrictions that apply to "CtorSet" apply here (in terms of the propertyIdentifier having to be a simple property retrieval and of the getter / setter having to
+		/// follow a naming convention), if they are not met then an exception will be thrown. Note that if the new value is the same as the current value then this process
+		/// will be skipped and the source reference will be passed straight back out. The new property value may not be null - if the property must be nullable then it should
+		/// have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
+		/// </summary>
+		[IgnoreGeneric]
+		public static T With<T, TPropertyElement>(
+			this T source,
+			Func<T, NonNullList<TPropertyElement>> propertyIdentifier,
+			uint index,
+			Func<TPropertyElement, TPropertyElement> valueUpdater)
+				where T : IAmImmutable
+		{
+			if (source == null)
+				throw new ArgumentNullException(nameof(source));
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException(nameof(propertyIdentifier));
+			if (valueUpdater == null)
+				throw new ArgumentNullException(nameof(valueUpdater));
+
+			var currentList = propertyIdentifier(source);
+			if (index >= currentList.Count)
+				throw new ArgumentOutOfRangeException(nameof(index));
+
+			var currentValue = currentList[index];
+			var updatedValue = valueUpdater(currentValue);
+			if (updatedValue == null)
+				throw new Exception($"The specified {nameof(valueUpdater)} returned null, which is invalid (if this is a property that may sometimes not have a value then it should be of type Optional)");
+
+			// If the new value is the same as the current value then no change is required (the With and SetValue calls below would work this out but they would have to do
+			// a little bit of work to come to the same conclusion - we may as well drop out now)
+			if (updatedValue.Equals(currentValue))
+				return source;
+
+			return source.With(
+				propertyIdentifier,
+				currentList.SetValue(index, updatedValue)
+			);
+		}
+
+		/// <summary>
 		/// This will take a source reference and a lambda that identifies the getter of a property on the source type and it will try to return a lambda that will take a
 		/// new value for the specified property and return a new instance of the source reference, with the property on the new instance set to the provided value. This
 		/// is like a partial application of the With method that takes a value argument as well as a source and propertyIdentifier. The same restrictions apply as for
