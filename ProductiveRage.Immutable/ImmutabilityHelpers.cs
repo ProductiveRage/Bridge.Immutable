@@ -319,6 +319,15 @@ namespace ProductiveRage.Immutable
 			if (source == null)
 				throw new ArgumentNullException("source");
 
+			if (IsObjectLiteral(source))
+			{
+				T objectLiteralClone = Script.Write<T>("{}");
+				/*@for (var i in source) {
+					objectLiteralClone[i] = source[i];
+				}*/
+				return objectLiteralClone;
+			}
+
 			// Although Bridge uses defineProperty to configure properties on classes now, rather than using a custom version based around getter and setter methods, it still
 			// does has some funky business - the get and set methods in the properties look in an $init object recorded against the object, which contains the property values.
 			// So, in order to clone an object, we need to create a new one based upon the same prototype and then we need to create an $init object on that new reference and
@@ -403,7 +412,7 @@ namespace ProductiveRage.Immutable
 			// properties. There are some hoops to jump through to combine IAmImmutable and [ObjectLiteral] (the constructor won't be called and so CtorSet can't be used
 			// to initialise the instance) but if this combination is required then the "With" method may still be used by identifying whether the current object is a
 			// "plain object" and working directly on the property value if so.
-			var isObjectLiteral = Script.Write<bool>("Bridge.isPlainObject(source)");
+			var isObjectLiteral = IsObjectLiteral(source);
 			if (isObjectLiteral)
 			{
 				var objectLiteralRegExSegments = new[] {
@@ -483,6 +492,14 @@ namespace ProductiveRage.Immutable
 				if (isLocked)
 					throw new ArgumentException("This property has been locked - it should only be set within the constructor");
 			};
+		}
+
+		private static bool IsObjectLiteral(object source)
+		{
+			if (source == null)
+				throw new ArgumentNullException(nameof(source));
+
+			return Script.Write<bool>("Bridge.isPlainObject({0})", source);
 		}
 
 		private static PropertyDescriptor TryToGetPropertyDescriptor(object source, string name)

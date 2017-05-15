@@ -1,4 +1,5 @@
-﻿using Bridge.Html5;
+﻿using Bridge;
+using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
 
@@ -87,6 +88,13 @@ namespace ProductiveRage.Immutable.Tests
 				// This test is just to ensure that there's no monkey business involved when targeting properties on a base class (as there are
 				// with interface properties - see above)
 				var x = new SecurityPersonDetails(1, "test", 10);
+				x = x.With(_ => _.Name, "test2");
+				assert.Equal(x.Name, "test2");
+			});
+
+			QUnit.Test("Simple string property update using With directly where target is [ObjectLiteral]", assert =>
+			{
+				var x = new ObjectLiteralPersonDetails(1, "test");
 				x = x.With(_ => _.Name, "test2");
 				assert.Equal(x.Name, "test2");
 			});
@@ -186,6 +194,21 @@ namespace ProductiveRage.Immutable.Tests
 				this.CtorSet(_ => _.Name, name);
 			}
 			public int Key { get; }
+			public string Name { get; }
+		}
+
+		[External]
+		[ObjectLiteral(ObjectCreateMode.Plain)]
+		public sealed class ObjectLiteralPersonDetails : IAmImmutable
+		{
+			public ObjectLiteralPersonDetails(int key, string name)
+			{
+				this.CtorSet(_ => _.Key, key);
+				this.CtorSet(_ => _.Name, name);
+			}
+			[Name("key")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
+			public int Key { get; }
+			[Name("name")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
 			public string Name { get; }
 		}
 
