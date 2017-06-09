@@ -1,5 +1,4 @@
-﻿using Bridge;
-using Bridge.Html5;
+﻿using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
 
@@ -92,12 +91,14 @@ namespace ProductiveRage.Immutable.Tests
 				assert.Equal(x.Name, "test2");
 			});
 
+			/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
 			QUnit.Test("Simple string property update using With directly where target is [ObjectLiteral]", assert =>
 			{
 				var x = new ObjectLiteralPersonDetails(1, "test");
 				x = x.With(_ => _.Name, "test2");
 				assert.Equal(x.Name, "test2");
 			});
+			*/
 
 			QUnit.Test("Simple string property update using With indirectly", assert =>
 			{
@@ -197,8 +198,9 @@ namespace ProductiveRage.Immutable.Tests
 			public string Name { get; }
 		}
 
+		/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
 		[External]
-		[ObjectLiteral(ObjectCreateMode.Plain)]
+		[ObjectLiteral(ObjectCreateMode.Constructor)]
 		public sealed class ObjectLiteralPersonDetails : IAmImmutable
 		{
 			public ObjectLiteralPersonDetails(int key, string name)
@@ -211,6 +213,7 @@ namespace ProductiveRage.Immutable.Tests
 			[Name("name")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
 			public string Name { get; }
 		}
+		*/
 
 		public interface IAmImmutableAndHaveName : IAmImmutable
 		{
