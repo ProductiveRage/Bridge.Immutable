@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Bridge;
 
 namespace ProductiveRage.Immutable
@@ -29,7 +30,7 @@ namespace ProductiveRage.Immutable
 
 	public sealed class NonNullList<T> : IEnumerable<T>
 	{
-		private readonly static NonNullList<T> _empty = new NonNullList<T>(null);
+		private readonly static NonNullList<T> _empty = new NonNullList<T>((Node)null);
 		public static NonNullList<T> Empty { get { return _empty; } }
 
 		private readonly Node _headIfAny;
@@ -37,7 +38,20 @@ namespace ProductiveRage.Immutable
 		{
 			_headIfAny = headIfAny;
 		}
-
+		public NonNullList(IEnumerable<T> values) // This was only added for Bridge.Newtonsoft.Json but it probably doesn't hurt to make it available for general use
+		{
+			Node node = null;
+			foreach (var value in values.Reverse())
+			{
+				node = new Node
+				{
+					Count = ((node == null) ? 0 : node.Count) + 1,
+					Item = value,
+					NextIfAny = node
+				};
+			}
+			_headIfAny = node;
+		}
 		// Making this a uint prevents having to have a summary comment explaining that it will always be zero or greater
 		public uint Count { get { return (_headIfAny == null) ? 0 : (uint)_headIfAny.Count; } }
 

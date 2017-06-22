@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>ProductiveRage.Immutable</id>
-    <version>2.5.0-beta</version>
+    <version>2.5.1-beta</version>
     <title>ProductiveRage.Immutable (for Bridge.NET)</title>
     <authors>ProductiveRage</authors>
     <owners>ProductiveRage</owners>
@@ -14,7 +14,7 @@
     <copyright>Copyright 2017 ProductiveRage</copyright>
     <tags>C# bridge bridge.net bridge.immutable immutable analyzers</tags>
     <dependencies>
-      <dependency id="Bridge.Min" version="16.0.0-beta2" />
+      <dependency id="Bridge.Min" version="16.0.0-beta3" />
     </dependencies>
   </metadata>
   <files>
