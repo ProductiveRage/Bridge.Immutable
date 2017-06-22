@@ -13,18 +13,7 @@ namespace ProductiveRage.Immutable
 		/// </summary>
 		public static NonNullList<T> Of<T>(params T[] values)
 		{
-			var list = NonNullList<T>.Empty;
-			if (values != null)
-			{
-				for (var i = values.Length - 1; i >= 0; i--)
-				{
-					var item = values[i];
-					if (item == null)
-						throw new ArgumentException("Null reference encountered at index " + i);
-					list = list.Insert(item);
-				}
-			}
-			return list;
+			return (values == null) ? NonNullList<T>.Empty : new NonNullList<T>(values);
 		}
 	}
 
