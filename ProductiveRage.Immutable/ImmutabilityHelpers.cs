@@ -7,7 +7,7 @@ namespace ProductiveRage.Immutable
 	public static class ImmutabilityHelpers
 	{
 		private delegate void PropertySetter(object source, object newPropertyValue, bool ignoreAnyExistingLock);
-		private readonly static Dictionary<CacheKey, PropertySetter> Cache = new Dictionary<CacheKey, PropertySetter>();
+		private readonly static Dictionary<string, PropertySetter> Cache = new Dictionary<string, PropertySetter>();
 
 		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a new value to set that reference's property to - it will
@@ -364,7 +364,7 @@ namespace ProductiveRage.Immutable
 			// The strange "(object)" cast before GetType is called is required due to a new-to-15.7.0 bug that causes GetType calls to fail if the method is generic and has
 			// the [IgnoreGeneric] attribute applied to it and if the GetType target reference is one of the method's generic type arguments. By casting it to object, the
 			// issue is avoided. See http://forums.bridge.net/forum/bridge-net-pro/bugs/3343 for more details.
-			var cacheKey = new CacheKey(((object)source).GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
+			var cacheKey = GetCacheKey(((object)source).GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
 
 			PropertySetter setter;
 			if (Cache.TryGetValue(cacheKey, out setter))
@@ -625,43 +625,9 @@ namespace ProductiveRage.Immutable
 			return Script.Write<string>(@"value.replace(matcher, '\\$&')");
 		}
 
-		private sealed class CacheKey : IEquatable<CacheKey>
+		private static string GetCacheKey(string sourceClassName, string propertyIdentifierFunctionString)
 		{
-			public CacheKey(string sourceClassName, string propertyIdentifierFunctionString)
-			{
-				if (sourceClassName == null)
-					throw new ArgumentNullException("sourceClassName");
-				if (propertyIdentifierFunctionString == null)
-					throw new ArgumentNullException("propertyIdentifierFunctionString");
-
-				SourceClassName = sourceClassName;
-				PropertyIdentifierFunctionString = propertyIdentifierFunctionString;
-			}
-
-			public string SourceClassName { get; private set; }
-			public string PropertyIdentifierFunctionString { get; private set; }
-
-			public bool Equals(CacheKey other)
-			{
-				return
-					(other != null) &&
-					(other.SourceClassName == SourceClassName) &&
-					(other.PropertyIdentifierFunctionString == PropertyIdentifierFunctionString);
-			}
-
-			public override bool Equals(object o)
-			{
-				return Equals(o as CacheKey);
-			}
-
-			public override int GetHashCode()
-			{
-				// Inspired by http://stackoverflow.com/a/263416
-				var hash = 17;
-				hash = hash ^ (23 + SourceClassName.GetHashCode());
-				hash = hash ^ (23 + PropertyIdentifierFunctionString.GetHashCode());
-				return hash;
-			}
+			return sourceClassName + "\n" + propertyIdentifierFunctionString;
 		}
 
 		private static string Replace(string source, JsRegex regEx, string replaceWith)
