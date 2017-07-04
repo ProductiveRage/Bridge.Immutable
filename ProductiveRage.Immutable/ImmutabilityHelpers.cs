@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Bridge;
 
 namespace ProductiveRage.Immutable
@@ -7,7 +6,7 @@ namespace ProductiveRage.Immutable
 	public static class ImmutabilityHelpers
 	{
 		private delegate void PropertySetter(object source, object newPropertyValue, bool ignoreAnyExistingLock);
-		private readonly static Dictionary<string, PropertySetter> Cache = new Dictionary<string, PropertySetter>();
+		private readonly static PropertySetterCache Cache = new PropertySetterCache();
 
 		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a new value to set that reference's property to - it will
@@ -371,7 +370,7 @@ namespace ProductiveRage.Immutable
 				return setter;
 
 			setter = ConstructSetter(source, propertyIdentifier);
-			Cache[cacheKey] = setter;
+			Cache.Set(cacheKey, setter);
 			return setter;
 		}
 
@@ -643,6 +642,31 @@ namespace ProductiveRage.Immutable
 
 			[Name("exec")]
 			public extern string[] Exec(string s);
+		}
+
+		private sealed class PropertySetterCache
+		{
+			private Object _cache;
+			public PropertySetterCache()
+			{
+				_cache = Script.Write<object>("{}");
+			}
+
+			public void Set(string cacheKey, PropertySetter value)
+			{
+				Script.Write("{0}[{1}] = {2}", _cache, cacheKey, value);
+			}
+
+			public bool TryGetValue(string cacheKey, out PropertySetter setter)
+			{
+				if (!Script.Write<bool>("{0}.hasOwnProperty({1})", _cache, cacheKey))
+				{
+					setter = null;
+					return false;
+				}
+				setter = Script.Write<PropertySetter>("{0}[{1}]", _cache, cacheKey);
+				return true;
+			}
 		}
 	}
 }
