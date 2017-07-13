@@ -172,8 +172,8 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
-		/// This will return a new Set of the same element type, where each item has been processed with the specified updater delegate. It is not valid for the updater to
-		/// return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If the
+		/// This will return a new NonNullList of the same element type, where each item has been processed with the specified updater delegate. It is not valid for the updater
+		/// to return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If the
 		/// set is empty or if the updater returns the same reference for every item then no change is required and the current Set reference will be returned unaltered.
 		/// </summary>
 		public NonNullList<T> UpdateAll(Func<T, T> updater)
@@ -185,8 +185,8 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
-		/// This will return a new Set of the same element type, where any item that matches the specified filter will be processed with the specified updater delegate. It
-		/// is not valid for the updater to return a null reference, this data type will not store null references (if there may be missing values then the type parameter
+		/// This will return a new NonNullList of the same element type, where any item that matches the specified filter will be processed with the specified updater delegate.
+		/// It is not valid for the updater to return a null reference, this data type will not store null references (if there may be missing values then the type parameter
 		/// should be an Optional). If the set is empty, if the filter does not match any items or if the updater returns the same reference for every matched item then
 		/// no change is required and the current Set reference will be returned unaltered.
 		/// </summary>
@@ -263,6 +263,43 @@ namespace ProductiveRage.Immutable
 				};
 			}
 			return new NonNullList<T>(node);
+		}
+
+		/// <summary>
+		/// This will return a new NonNullList of different element type, where each item has processed with the specified mapper delegate. It is not valid for the mapper
+		/// to return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If
+		/// the target element type is the same current element type then UpdateAll is a more appropriate method to use as it is able to return the same NonNullList
+		/// instance if the mapper doesn't change any item.
+		/// </summary>
+		public NonNullList<TDest> Map<TDest>(Func<T, TDest> mapper)
+		{
+			if (mapper == null)
+				throw new ArgumentNullException(nameof(mapper));
+
+			if (_headIfAny == null)
+				return NonNullList<TDest>.Empty;
+
+			NonNullList<TDest>.Node newHeadIfAny = null;
+			NonNullList<TDest>.Node previousNewNodeIfAny = null;
+			var node = _headIfAny;
+			while (node != null)
+			{
+				var value = mapper(node.Item);
+				if (value == null)
+					throw new ArgumentException($"Specified {mapper} returned null value - invalid");
+				var newNode = new NonNullList<TDest>.Node
+				{
+					Count = node.Count,
+					Item = value
+				};
+				if (newHeadIfAny == null)
+					newHeadIfAny = newNode;
+				if (previousNewNodeIfAny != null)
+					previousNewNodeIfAny.NextIfAny = newNode;
+				previousNewNodeIfAny = newNode;
+				node = node.NextIfAny;
+			}
+			return new NonNullList<TDest>(newHeadIfAny);
 		}
 
 		/// <summary>
