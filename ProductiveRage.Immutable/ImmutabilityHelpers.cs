@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Bridge;
 
 namespace ProductiveRage.Immutable
@@ -7,7 +6,7 @@ namespace ProductiveRage.Immutable
 	public static class ImmutabilityHelpers
 	{
 		private delegate void PropertySetter(object source, object newPropertyValue, bool ignoreAnyExistingLock);
-		private readonly static Dictionary<CacheKey, PropertySetter> Cache = new Dictionary<CacheKey, PropertySetter>();
+		private readonly static PropertySetterCache Cache = new PropertySetterCache();
 
 		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a new value to set that reference's property to - it will
@@ -185,6 +184,49 @@ namespace ProductiveRage.Immutable
 		}
 
 		/// <summary>
+		/// This will take a source reference, a lambda that identifies the getter of a property on the source type that is a NonNullList, an index that must exist within the
+		/// current value for the specified property on the source reference and a delegate that takes the current value for that list item and returns a replacement. The same
+		/// restrictions that apply to "CtorSet" apply here (in terms of the propertyIdentifier having to be a simple property retrieval and of the getter / setter having to
+		/// follow a naming convention), if they are not met then an exception will be thrown. Note that if the new value is the same as the current value then this process
+		/// will be skipped and the source reference will be passed straight back out. The new property value may not be null - if the property must be nullable then it should
+		/// have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing" value).
+		/// </summary>
+		[IgnoreGeneric]
+		public static T With<T, TPropertyElement>(
+			this T source,
+			Func<T, NonNullList<TPropertyElement>> propertyIdentifier,
+			uint index,
+			Func<TPropertyElement, TPropertyElement> valueUpdater)
+				where T : IAmImmutable
+		{
+			if (source == null)
+				throw new ArgumentNullException(nameof(source));
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException(nameof(propertyIdentifier));
+			if (valueUpdater == null)
+				throw new ArgumentNullException(nameof(valueUpdater));
+
+			var currentList = propertyIdentifier(source);
+			if (index >= currentList.Count)
+				throw new ArgumentOutOfRangeException(nameof(index));
+
+			var currentValue = currentList[index];
+			var updatedValue = valueUpdater(currentValue);
+			if (updatedValue == null)
+				throw new Exception($"The specified {nameof(valueUpdater)} returned null, which is invalid (if this is a property that may sometimes not have a value then it should be of type Optional)");
+
+			// If the new value is the same as the current value then no change is required (the With and SetValue calls below would work this out but they would have to do
+			// a little bit of work to come to the same conclusion - we may as well drop out now)
+			if (updatedValue.Equals(currentValue))
+				return source;
+
+			return source.With(
+				propertyIdentifier,
+				currentList.SetValue(index, updatedValue)
+			);
+		}
+
+		/// <summary>
 		/// This will take a source reference and a lambda that identifies the getter of a property on the source type and it will try to return a lambda that will take a
 		/// new value for the specified property and return a new instance of the source reference, with the property on the new instance set to the provided value. This
 		/// is like a partial application of the With method that takes a value argument as well as a source and propertyIdentifier. The same restrictions apply as for
@@ -276,12 +318,34 @@ namespace ProductiveRage.Immutable
 			if (source == null)
 				throw new ArgumentNullException("source");
 
-			// The simplest way to clone a generic reference seems to be a combination of Object.create and then copying the properties from the source to the clone (copying
-			// may not be done from the prototype since there may be instance data that must be carried across)
-			T clone = Script.Write<T>("Object.create(source.constructor.prototype)");
-			/*@for (var i in source) {
-				clone[i] = source[i];
-			}*/
+			if (IsObjectLiteral(source))
+			{
+				T objectLiteralClone = Script.Write<T>("{}");
+				/*@for (var i in source) {
+					objectLiteralClone[i] = source[i];
+				}*/
+				return objectLiteralClone;
+			}
+
+			// Although Bridge uses defineProperty to configure properties on classes now, rather than using a custom version based around getter and setter methods, it still
+			// does has some funky business - the get and set methods in the properties look in an $init object recorded against the object, which contains the property values.
+			// So, in order to clone an object, we need to create a new one based upon the same prototype and then we need to create an $init object on that new reference and
+			// copy all of the values over from the old to the new. Then we need to copy the "_{PropertyName}__Lock" values over that this library puts on references (to be
+			// honest, they could possibly be removed - the offer runtime protection that CtorSet is not used outside of a constructor and there is an analyser for that).
+			T clone = Script.Write<T>("Object.create(Object.getPrototypeOf(source))");
+			/*@
+			clone.$init = {};
+			for (var name in source.$init) {
+				if (source.$init.hasOwnProperty(name)) {
+					clone.$init[name] = source.$init[name];
+				}
+			}
+			for (var name in source) {
+				if (source.hasOwnProperty(name) && (name.substr(0, 2) === "__") && (name.substr(-5) === "_Lock")) {
+					clone[name] = source[name];
+				}
+			}
+			*/
 			return clone;
 		}
 
@@ -299,14 +363,14 @@ namespace ProductiveRage.Immutable
 			// The strange "(object)" cast before GetType is called is required due to a new-to-15.7.0 bug that causes GetType calls to fail if the method is generic and has
 			// the [IgnoreGeneric] attribute applied to it and if the GetType target reference is one of the method's generic type arguments. By casting it to object, the
 			// issue is avoided. See http://forums.bridge.net/forum/bridge-net-pro/bugs/3343 for more details.
-			var cacheKey = new CacheKey(((object)source).GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
+			var cacheKey = GetCacheKey(((object)source).GetType().FullName, GetFunctionStringRepresentation(propertyIdentifier));
 
 			PropertySetter setter;
 			if (Cache.TryGetValue(cacheKey, out setter))
 				return setter;
 
 			setter = ConstructSetter(source, propertyIdentifier);
-			Cache[cacheKey] = setter;
+			Cache.Set(cacheKey, setter);
 			return setter;
 		}
 
@@ -347,7 +411,7 @@ namespace ProductiveRage.Immutable
 			// properties. There are some hoops to jump through to combine IAmImmutable and [ObjectLiteral] (the constructor won't be called and so CtorSet can't be used
 			// to initialise the instance) but if this combination is required then the "With" method may still be used by identifying whether the current object is a
 			// "plain object" and working directly on the property value if so.
-			var isObjectLiteral = Script.Write<bool>("Bridge.isPlainObject(source)");
+			var isObjectLiteral = IsObjectLiteral(source);
 			if (isObjectLiteral)
 			{
 				var objectLiteralRegExSegments = new[] {
@@ -427,6 +491,14 @@ namespace ProductiveRage.Immutable
 				if (isLocked)
 					throw new ArgumentException("This property has been locked - it should only be set within the constructor");
 			};
+		}
+
+		private static bool IsObjectLiteral(object source)
+		{
+			if (source == null)
+				throw new ArgumentNullException(nameof(source));
+
+			return Script.Write<bool>("Bridge.isPlainObject({0})", source);
 		}
 
 		private static PropertyDescriptor TryToGetPropertyDescriptor(object source, string name)
@@ -559,43 +631,9 @@ namespace ProductiveRage.Immutable
 			return Script.Write<string>(@"value.replace(matcher, '\\$&')");
 		}
 
-		private sealed class CacheKey : IEquatable<CacheKey>
+		private static string GetCacheKey(string sourceClassName, string propertyIdentifierFunctionString)
 		{
-			public CacheKey(string sourceClassName, string propertyIdentifierFunctionString)
-			{
-				if (sourceClassName == null)
-					throw new ArgumentNullException("sourceClassName");
-				if (propertyIdentifierFunctionString == null)
-					throw new ArgumentNullException("propertyIdentifierFunctionString");
-
-				SourceClassName = sourceClassName;
-				PropertyIdentifierFunctionString = propertyIdentifierFunctionString;
-			}
-
-			public string SourceClassName { get; private set; }
-			public string PropertyIdentifierFunctionString { get; private set; }
-
-			public bool Equals(CacheKey other)
-			{
-				return
-					(other != null) &&
-					(other.SourceClassName == SourceClassName) &&
-					(other.PropertyIdentifierFunctionString == PropertyIdentifierFunctionString);
-			}
-
-			public override bool Equals(object o)
-			{
-				return Equals(o as CacheKey);
-			}
-
-			public override int GetHashCode()
-			{
-				// Inspired by http://stackoverflow.com/a/263416
-				var hash = 17;
-				hash = hash ^ (23 + SourceClassName.GetHashCode());
-				hash = hash ^ (23 + PropertyIdentifierFunctionString.GetHashCode());
-				return hash;
-			}
+			return sourceClassName + "\n" + propertyIdentifierFunctionString;
 		}
 
 		private static string Replace(string source, JsRegex regEx, string replaceWith)
@@ -611,6 +649,31 @@ namespace ProductiveRage.Immutable
 
 			[Name("exec")]
 			public extern string[] Exec(string s);
+		}
+
+		private sealed class PropertySetterCache
+		{
+			private Object _cache;
+			public PropertySetterCache()
+			{
+				_cache = Script.Write<object>("{}");
+			}
+
+			public void Set(string cacheKey, PropertySetter value)
+			{
+				Script.Write("{0}[{1}] = {2}", _cache, cacheKey, value);
+			}
+
+			public bool TryGetValue(string cacheKey, out PropertySetter setter)
+			{
+				if (!Script.Write<bool>("{0}.hasOwnProperty({1})", _cache, cacheKey))
+				{
+					setter = null;
+					return false;
+				}
+				setter = Script.Write<PropertySetter>("{0}[{1}]", _cache, cacheKey);
+				return true;
+			}
 		}
 	}
 }

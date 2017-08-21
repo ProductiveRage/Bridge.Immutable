@@ -75,12 +75,12 @@ namespace ProductiveRage.Immutable.Tests
 				assert.Equal(x.Id, "def");
 			});
 
-			QUnit.Test("Simple string property update against an interface using With directly", assert =>
+			QUnit.Test("With does not affect original instance", assert =>
 			{
-				// Inspired by issue https://github.com/ProductiveRage/Bridge.Immutable/issues/4
-				IAmImmutableAndHaveName viaInterfacePerson = new PersonDetails(1, "test");
-				viaInterfacePerson = viaInterfacePerson.With(_ => _.Name, "test2");
-				assert.Equal(viaInterfacePerson.Name, "test2");
+				var x0 = new SomethingWithStringId("abc");
+				var x1 = x0.With(_ => _.Id, "def");
+				assert.Equal(x0.Id, "abc");
+				assert.Equal(x1.Id, "def");
 			});
 
 			QUnit.Test("Simple string property update of property on a base class using With directly", assert =>
@@ -91,6 +91,15 @@ namespace ProductiveRage.Immutable.Tests
 				x = x.With(_ => _.Name, "test2");
 				assert.Equal(x.Name, "test2");
 			});
+
+			/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
+			QUnit.Test("Simple string property update using With directly where target is [ObjectLiteral]", assert =>
+			{
+				var x = new ObjectLiteralPersonDetails(1, "test");
+				x = x.With(_ => _.Name, "test2");
+				assert.Equal(x.Name, "test2");
+			});
+			*/
 
 			QUnit.Test("Simple string property update using With indirectly", assert =>
 			{
@@ -141,6 +150,23 @@ namespace ProductiveRage.Immutable.Tests
 					"The Validate method should be called after With"
 				);
 			});
+
+			// When first changing the Clone behaviour within ImmutabilityHelpers to work with Bridge 16 (which changes how properties are defined on objects), there was a
+			// bug introduced where the updating properties on the clone would update the values on the original value too! These tests confirm that that bug is no more.
+			QUnit.Test("Simple string property update against an interface using With directly", assert =>
+			{
+				// Inspired by issue https://github.com/ProductiveRage/Bridge.Immutable/issues/4
+				IAmImmutableAndHaveName viaInterfacePerson = new PersonDetails(1, "test");
+				viaInterfacePerson = viaInterfacePerson.With(_ => _.Name, "test2");
+				assert.Equal(viaInterfacePerson.Name, "test2");
+			});
+			QUnit.Test("Double-check must-not-affect-original-instance when targeting property on base class", assert =>
+			{
+				var x0 = new SecurityPersonDetails(1, "test", 10);
+				var x1 = x0.With(_ => _.Name, "test2");
+				assert.Equal(x0.Name, "test");
+				assert.Equal(x1.Name, "test2");
+			});
 		}
 
 		public sealed class SomethingWithStringId : IAmImmutable
@@ -181,6 +207,23 @@ namespace ProductiveRage.Immutable.Tests
 			public int Key { get; }
 			public string Name { get; }
 		}
+
+		/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
+		[External]
+		[ObjectLiteral(ObjectCreateMode.Constructor)]
+		public sealed class ObjectLiteralPersonDetails : IAmImmutable
+		{
+			public ObjectLiteralPersonDetails(int key, string name)
+			{
+				this.CtorSet(_ => _.Key, key);
+				this.CtorSet(_ => _.Name, name);
+			}
+			[Name("key")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
+			public int Key { get; }
+			[Name("name")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
+			public string Name { get; }
+		}
+		*/
 
 		public interface IAmImmutableAndHaveName : IAmImmutable
 		{

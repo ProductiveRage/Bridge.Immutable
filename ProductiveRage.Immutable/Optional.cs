@@ -10,9 +10,6 @@ namespace ProductiveRage.Immutable
 	[Immutable]
 	public struct Optional<T> : IEquatable<Optional<T>>
 	{
-		private readonly T value;
-		private readonly bool isDefined;
-
 		public Optional(T value) : this(value, value != null) { }
 		private Optional(T value, bool isDefined)
 		{
@@ -22,8 +19,8 @@ namespace ProductiveRage.Immutable
 			// declared through the public constructor (or through a cast or through the static generic For function) and T is
 			// a reference type then IsDefined only be set to true if the specified value is not null (since there is no point
 			// in saying IsDefined: true but value: null, if a null value is desired then IsDefined should be false!)
-			this.isDefined = isDefined && (value != null);
-			this.value = value;
+			IsDefined = isDefined && (value != null);
+			Value = value;
 		}
 
 		/// <summary>
@@ -32,19 +29,24 @@ namespace ProductiveRage.Immutable
 		public static Optional<T> Missing { get { return _missing; } }
 		private static Optional<T> _missing = new Optional<T>(default(T), false);
 
+		// 2017-06-14 DWR: Due to the way that the Bridge interpretation of JSON.NET works (and because it doesn't support [JsonConstructor]),
+		// these properties can't be readonly (getter-only) - the private setters are required so that the deserialisation process can work. That
+		// is the only time that these values should be manipulated on an existing instance - for all other times, they may be considered readonly
+		// readonly and the properties to have no setter.
+
 		/// <summary>
 		/// Gets a value indicating whether the value was specified.
 		/// </summary>
-		public bool IsDefined { get { return this.isDefined; } }
+		public bool IsDefined { get; private set; }
 
 		/// <summary>
 		/// Gets the specified value, or the default value for the type if <see cref="IsDefined"/> is <c>false</c>.
 		/// </summary>
-		public T Value { get { return this.value; } }
+		public T Value { get; private set; }
 
 		public T GetValueOrDefault(T defaultValue)
 		{
-			return this.IsDefined ? this.value : defaultValue;
+			return IsDefined ? Value : defaultValue;
 		}
 
 		/// <summary>
@@ -58,7 +60,7 @@ namespace ProductiveRage.Immutable
 
 			if (IsDefined)
 			{
-				var newValue = mapper(value);
+				var newValue = mapper(Value);
 				if (newValue == null)
 					return Optional<TResult>.Missing;
 				if ((typeof(TResult) == typeof(T)) && newValue.Equals(Value))
@@ -68,7 +70,7 @@ namespace ProductiveRage.Immutable
 					// the compiler will complain.
 					return Script.Write<Optional<TResult>>("this");
 				}
-				return mapper(value);
+				return mapper(Value);
 			}
 
 			// Don't need to worry about returning new instances here, the "Missing" value is shared across all Optional<T> instances
@@ -101,21 +103,21 @@ namespace ProductiveRage.Immutable
 
 		public bool Equals(Optional<T> other)
 		{
-			if (!IsDefined && !other.isDefined)
+			if (!IsDefined && !other.IsDefined)
 				return true;
-			else if (!IsDefined || !other.isDefined)
+			else if (!IsDefined || !other.IsDefined)
 				return false;
-			return Value.Equals(other.value);
+			return Value.Equals(other.Value);
 		}
 
 		public override int GetHashCode()
 		{
-			return IsDefined ? value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type
+			return IsDefined ? Value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type
 		}
 
 		public override string ToString()
 		{
-			return isDefined ? Value.ToString() : "{Missing}";
+			return IsDefined ? Value.ToString() : "{Missing}";
 		}
 	}
 
