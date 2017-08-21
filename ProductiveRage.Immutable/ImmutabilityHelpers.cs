@@ -502,10 +502,17 @@ namespace ProductiveRage.Immutable
 			if (source == null)
 				throw new ArgumentNullException("source");
 
+			// 2017-07-16 DWR: Previously only looked for "validate" here since Bridge pre-16 used to camel-cases identifiers by default but now supporting both "validate" AND "Validate"
 			/*@
 			var validate = source.validate;
 			if (validate && (typeof(validate) === "function") && (validate.length === 0)) {
 				validate.apply(source);
+			}
+			else {
+				validate = source.Validate;
+				if (validate && (typeof(validate) === "function") && (validate.length === 0)) {
+					validate.apply(source);
+				}
 			}
 			*/
 		}

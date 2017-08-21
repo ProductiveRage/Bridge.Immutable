@@ -1,4 +1,5 @@
-﻿using Bridge.Html5;
+﻿using System;
+using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
 
@@ -131,6 +132,15 @@ namespace ProductiveRage.Immutable.Tests
 				x = x.With<SomethingWithNonNullListStringValues, string>(propertyToUpdate, 1, "xyz");
 				assert.Equal(x.Values[1], "xyz");
 			});
+
+			QUnit.Test("The Validate method (if there is one defined with zero parameters) should be called after With", assert =>
+			{
+				var x = new SomethingWithNonZeroKey(123);
+				assert.Throws(
+					() => x.With(_ => _.Key, (uint)0),
+					"The Validate method should be called after With"
+				);
+			});
 		}
 
 		public sealed class SomethingWithStringId : IAmImmutable
@@ -175,6 +185,21 @@ namespace ProductiveRage.Immutable.Tests
 		public interface IAmImmutableAndHaveName : IAmImmutable
 		{
 			string Name { get; }
+		}
+
+		public sealed class SomethingWithNonZeroKey : IAmImmutable
+		{
+			public SomethingWithNonZeroKey(uint key)
+			{
+				this.CtorSet(_ => _.Key, key);
+				Validate();
+			}
+			private void Validate()
+			{
+				if (Key == 0)
+					throw new ArgumentException($"{nameof(Key)} may not be zero");
+			}
+			public uint Key { get; }
 		}
 	}
 }
