@@ -63,7 +63,14 @@ namespace ProductiveRage.Immutable
 				var newValue = mapper(Value);
 				if (newValue == null)
 					return Optional<TResult>.Missing;
-				if ((typeof(TResult) == typeof(T)) && newValue.Equals(Value))
+
+				// 2017-10-16 DWR: Don't try to use this if-new-and-old-values-are-the-same-and-TResult-is-the-same-as-T-then-return-this logic if T is DateTime because the implementation of DateTime
+				// is such that it will return true from Equals if two DateTimes have the same date and time but different time zones (which seems crazy to me since they're not representing the same
+				// value - but the behaviour is consistent with .NET). I'm on the fence about removing this micro-optimisation entirely - all that it saves is a new reference to a Bridge representation
+				// of a struct (in Bridge, each struct object is really a regular object instance made to look like a .NET struct whereas .NET structs are inherently different and are not tracked by
+				// the garbage collector and so trying to "reuse" a struct instance in .NET would not make any sense).
+				var newValueEqualsOldValue = (typeof(T) != typeof(DateTime)) && newValue.Equals(Value);
+				if ((typeof(TResult) == typeof(T)) && newValueEqualsOldValue)
 				{
 					// If the destination type is the same as the current type and the new value is the same as the existing value
 					// then just return this instance immediately, rather than creating a new issue. We can't perform a cast because
@@ -76,6 +83,7 @@ namespace ProductiveRage.Immutable
 			// Don't need to worry about returning new instances here, the "Missing" value is shared across all Optional<T> instances
 			return Optional<TResult>.Missing;
 		}
+
 		/// <summary>
 		/// Implicitly wraps the specified value as an Optional.
 		/// </summary>
