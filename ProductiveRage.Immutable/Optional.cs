@@ -70,7 +70,7 @@ namespace ProductiveRage.Immutable
 					// the compiler will complain.
 					return Script.Write<Optional<TResult>>("this");
 				}
-				return mapper(Value);
+				return newValue;
 			}
 
 			// Don't need to worry about returning new instances here, the "Missing" value is shared across all Optional<T> instances
