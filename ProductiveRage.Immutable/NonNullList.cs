@@ -64,6 +64,37 @@ namespace ProductiveRage.Immutable
 			});
 		}
 
+		public NonNullList<T> Insert(NonNullList<T> other)
+		{
+			if (other == null)
+				throw new ArgumentNullException(nameof(other));
+
+			if (other.Count == 0)
+				return this;
+
+			var otherItems = new T[other.Count];
+			var otherNode = other._headIfAny;
+			var otherIndex = 0;
+			while (otherNode != null)
+			{
+				otherItems[otherIndex] = otherNode.Item;
+				otherNode = otherNode.NextIfAny;
+				otherIndex++;
+			}
+
+			var newHeadIfAny = _headIfAny;
+			for (var i = 0; i < other.Count; i++) // Can't use a decrement-by-one loop because other.Count is a uint so we need to increment and then..
+			{
+				newHeadIfAny = new Node
+				{
+					Count = newHeadIfAny.Count + 1,
+					Item = otherItems[(other.Count - 1) - i], // .. do some arithmetic here
+					NextIfAny = newHeadIfAny
+				};
+			}
+			return new NonNullList<T>(newHeadIfAny);
+		}
+
 		/// <summary>
 		/// Due to the internal structure of this class, this is a more expensive operation that Insert (which inserts a new item at the start of the set, rather than at
 		/// the end, which this function does).  Null references are not allowed (an exception will be thrown), if you require values that may be null then the type parameter
