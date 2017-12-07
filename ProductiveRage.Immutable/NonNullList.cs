@@ -87,7 +87,7 @@ namespace ProductiveRage.Immutable
 			{
 				newHeadIfAny = new Node
 				{
-					Count = newHeadIfAny.Count + 1,
+					Count = ((newHeadIfAny == null) ? 0 : newHeadIfAny.Count) + 1,
 					Item = otherItems[(other.Count - 1) - i], // .. do some arithmetic here
 					NextIfAny = newHeadIfAny
 				};
