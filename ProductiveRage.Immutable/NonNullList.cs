@@ -428,6 +428,56 @@ namespace ProductiveRage.Immutable
 			return new NonNullList<T>(node);
 		}
 
+		public NonNullList<T> OrderBy<TKey>(Func<T, TKey> keySelector, IComparer<TKey> optionalComparer = null)
+		{
+			if (keySelector == null)
+				throw new ArgumentNullException(nameof(keySelector));
+
+			// If there are zero or one items then there's no ordering that can possibly be needed!
+			if (Count < 2)
+				return this;
+
+			// We'll create an enumerable of Node instances that have the Item properties set for the current data (but not Count of NextIfAny because they will be wrong after the
+			// data is ordered anyway) and we'll order this using OrderBy to give a new enumerable set of these same Node instances. Then we need to wrap wrap these instances up
+			// into a linked list and set their Count and NextIfAny properties as we go. Then we create a new list with that new linked list and we're done.
+			Node newHead = null;
+			Node previous = null;
+			var count = _headIfAny.Count; // We know that _headIfAny is not null because we ensured that Count was 2 or greater earlier
+			foreach (var newNode in EnumerateClonedNodeWrappedItems().OrderBy(node => keySelector(node.Item), optionalComparer))
+			{
+				if (newHead == null)
+					newHead = newNode;
+				else
+					previous.NextIfAny = newNode;
+				newNode.Count = count;
+				previous = newNode;
+				count--;
+			}
+			return new NonNullList<T>(newHead);
+		}
+
+		public NonNullList<T> OrderByDescending<TKey>(Func<T, TKey> keySelector, IComparer<TKey> optionalComparer = null)
+		{
+			if (keySelector == null)
+				throw new ArgumentNullException(nameof(keySelector));
+
+			return OrderBy(keySelector, new ReversedComparer<TKey>(optionalComparer ?? Comparer<TKey>.Default));
+		}
+
+		/// <summary>
+		/// This returns an enumerable of Node instances where the Item property is set but not the Count or NextIfAny (this is only useful within the OrderBy implementation, which
+		/// will set those properties on the cloned Nodes after rearranging them - ordinarily )
+		/// </summary>
+		private IEnumerable<Node> EnumerateClonedNodeWrappedItems()
+		{
+			var node = _headIfAny;
+			while (node != null)
+			{
+				yield return new Node { Item = node.Item };
+				node = node.NextIfAny;
+			}
+		}
+
 #pragma warning disable CS0618 // Ignore the fact that Set is obsolete, this implicit cast will only be supported until the Set class is finally removed from the library
 		public static implicit operator NonNullList<T>(Set<T> source)
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -455,6 +505,21 @@ namespace ProductiveRage.Immutable
 			public int Count;
 			public T Item;
 			public Node NextIfAny;
+		}
+
+		private sealed class ReversedComparer<TKey> : IComparer<TKey>
+		{
+			private readonly IComparer<TKey> _comparer;
+			public ReversedComparer(IComparer<TKey> comparer)
+			{
+				if (comparer == null)
+					throw new ArgumentNullException(nameof(comparer));
+				_comparer = comparer;
+			}
+			public int Compare(TKey x, TKey y)
+			{
+				return _comparer.Compare(y, x);
+			}
 		}
 	}
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
@@ -13,6 +15,7 @@ namespace ProductiveRage.Immutable.Tests
 			OptionalTests();
 			CtorSetTests();
 			WithTests();
+			NonNullListTests();
 		}
 
 		private static void OptionalTests()
@@ -167,6 +170,47 @@ namespace ProductiveRage.Immutable.Tests
 				assert.Equal(x0.Name, "test");
 				assert.Equal(x1.Name, "test2");
 			});
+		}
+
+		private static void NonNullListTests()
+		{
+			QUnit.Module("NonNullListTests");
+
+			QUnit.Test("NonNullList.OrderBy - numeric sequence permutations", assert =>
+			{
+				for (var numberOfItems = 0; numberOfItems <= 4; numberOfItems++)
+				{
+					var data = Enumerable.Range(0, numberOfItems);
+					var expectedResultAsString = string.Join(", ", data);
+					foreach (var permutation in GetPermutations(data.ToArray()).Select(permutation => NonNullList.Of(permutation).OrderBy(value => value)))
+					{
+						var actualResultAsString = string.Join(", ", permutation);
+						assert.Equal(actualResultAsString, expectedResultAsString);
+					}
+				}
+			});
+		}
+
+		private static IEnumerable<int[]> GetPermutations(params int[] values)
+		{
+			if (values == null)
+				throw new ArgumentNullException(nameof(values));
+
+			var permutations = values.Select(value => new[] { value }).ToArray();
+			for (var i = 0; i < values.Length - 1; i++)
+			{
+				var newPermutations = new List<int[]>();
+				foreach (var value in values)
+				{
+					foreach (var permutation in permutations)
+					{
+						if (!permutation.Contains(value))
+							newPermutations.Add(((IEnumerable<int>)permutation).Concat(new[] { value }).ToArray());
+					}
+				}
+				permutations = newPermutations.ToArray();
+			}
+			return permutations;
 		}
 
 		public sealed class SomethingWithStringId : IAmImmutable
