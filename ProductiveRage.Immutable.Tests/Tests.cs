@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Bridge;
 using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
@@ -54,6 +55,12 @@ namespace ProductiveRage.Immutable.Tests
 			QUnit.Test("Simple string property CtorSet initialisation", assert =>
 			{
 				var x = new SomethingWithStringId("abc");
+				assert.Equal(x.Id, "abc");
+			});
+
+			QUnit.Test("Simple string property CtorSet initialisation on 'Plain' autoProperty", assert =>
+			{
+				var x = new SomethingWithPlainAutoPropertyStringId("abc");
 				assert.Equal(x.Id, "abc");
 			});
 
@@ -219,6 +226,17 @@ namespace ProductiveRage.Immutable.Tests
 			{
 				this.CtorSet(_ => _.Id, id);
 			}
+			[Rules(AutoProperty = AutoPropertyRule.Managed)]
+			public string Id { get; }
+		}
+
+		public sealed class SomethingWithPlainAutoPropertyStringId : IAmImmutable
+		{
+			public SomethingWithPlainAutoPropertyStringId(string id)
+			{
+				this.CtorSet(_ => _.Id, id);
+			}
+			[Rules(AutoProperty = AutoPropertyRule.Plain)]
 			public string Id { get; }
 		}
 

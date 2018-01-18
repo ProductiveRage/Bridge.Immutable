@@ -472,12 +472,20 @@ namespace ProductiveRage.Immutable
 			if (propertyDescriptorIfDefined == null)
 				throw new ArgumentException("Failed to find expected property \"" + propertyName + "\" (could not retrieve PropertyDescriptor)");
 
+			// 2018-01-18 DWR: Bridge 16.0 moved to auto properties being ES6 style properties with getters and setters at all times but 16.3 introduced an option for them to be "Plain" rather than "Managed"
+			// and the bridge.json that is included with the Bridge NuGet package enables this option and so we can't presume that a setter will be present. If not, check whether the property is declared as
+			// being "Writable" and generate a setter function that will work as if the "Managed" autoProperty rule is specified.
 			var setter = propertyDescriptorIfDefined.OptionalSetter;
-			if (Script.Write<bool>("!setter"))
+			if (Script.Write<bool>("!!setter"))
+			{
+				var hasExpectedSetter = Script.Write<bool>("(typeof(setter) === \"function\") && (setter.length === 1)");
+				if (!hasExpectedSetter)
+					throw new ArgumentException("Property setter does not match expected format (single argument function) for \"" + propertyName + "\"");
+			}
+			else if (propertyDescriptorIfDefined.IsWritableIfPlainAutoProperty)
+				setter = Script.Write<Action<object>>("function (value) { this[{0}] = value; }", propertyName);
+			else
 				throw new ArgumentException("Failed to retrieve expected property setter for \"" + propertyName + "\"");
-			var hasExpectedSetter = Script.Write<bool>("(typeof(setter) === \"function\") && (setter.length === 1)");
-			if (!hasExpectedSetter)
-				throw new ArgumentException("Property setter does not match expected format (single argument function) for \"" + propertyName + "\"");
 
 			return (target, newValue, ignoreAnyExistingLock) =>
 			{
@@ -531,6 +539,8 @@ namespace ProductiveRage.Immutable
 			public Func<object> OptionalGetter { get; }
 			[Name("set")]
 			public Action<object> OptionalSetter { get; }
+			[Name("writable")]
+			public bool IsWritableIfPlainAutoProperty { get; }
 		}
 
 		private static string AsRegExSegment(string value)
