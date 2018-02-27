@@ -45,7 +45,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
-		/// While investigating an issue, I thought that it might have something to do with calling an extension method- it didn't but some extra test coverage doesn't hurt
+		/// While investigating an issue, I thought that it might have something to do with calling an extension method - it didn't but some extra test coverage doesn't hurt
 		/// </summary>
 		[TestMethod]
 		public void ExtensionMethodsMustWork()
@@ -203,6 +203,87 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				Locations = new[]
 				{
 					new DiagnosticResultLocation("Test0.cs", 11, 14)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
+		/// <summary>
+		/// TODO: Explain
+		/// </summary>
+		[TestMethod]
+		public void MustAllowAttributeOnDelegateArguments()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public void Test(MyDelegate d)
+						{
+							d(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public delegate void MyDelegate([PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier);
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+		
+		/// <summary>
+		/// TODO: Explain
+		/// </summary>
+		[TestMethod]
+		public void MustVerifyWhenCallingUserDefinedDelegate()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class Example
+					{
+						public void Test(MyDelegate d)
+						{
+							d(_ => 456);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public delegate void MyDelegate([PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier);
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = PropertyIdentifierAttributeAnalyzer.DiagnosticId,
+				Message = PropertyIdentifierAttributeAnalyzer.SimplePropertyAccessorArgumentAccessRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 11, 10)
 				}
 			};
 

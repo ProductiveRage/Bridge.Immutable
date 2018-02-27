@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -98,9 +99,24 @@ namespace ProductiveRage.Immutable.Analyser
 			if (invocation == null)
 				return;
 
-			var method = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
-			if (method == null)
-				return;
+			IEnumerable<IParameterSymbol> parameters;
+			var delegateParameter = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IParameterSymbol;
+			if (delegateParameter != null)
+			{
+				var delegateType = delegateParameter.Type as INamedTypeSymbol;
+				if ((delegateType != null) && (delegateType.TypeKind == TypeKind.Delegate) && (delegateType.DelegateInvokeMethod != null))
+					parameters = delegateType.DelegateInvokeMethod.Parameters;
+				else
+					parameters = null;
+			}
+			else
+			{
+				var method = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
+				if (method == null)
+					return;
+
+				parameters = method.Parameters;
+			}
 
 			// Note: If the target method is an extension method then GetSymbolInfo does something clever based upon how it's called. If, for example, the extension method has two
 			// arguments - the "this" argument and a second one - and the method is called as an extension method then the "method" instance here will have a single parameter
@@ -112,7 +128,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// we need to be sure to only look at the provided argument values and to ignore any method parameters that are left to their defaults (default values have to be compile
 			// time constants and so, for delegates, these will have to null - so it won't be possible for a method parameter to have an invalid default value other than null, so
 			// we only need to worry about validating the actual argument values).
-			var invocationArgumentDetails = method.Parameters
+			var invocationArgumentDetails = parameters
 				.Take(invocation.ArgumentList.Arguments.Count) // Only consider argument values that are specified (ignore any parameters that are taking default values)
 				.Select((p, i) => new
 				{
