@@ -100,7 +100,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// See notes in WithCallAnalyzer and CtorSetCallAnalyzer about why it's important that we don't allow down casting of the property
 			// type (if a "Name" property is of type string then don't allow the TPropertyValue type argument to be inferred as anything less
 			// specific, such as object).
-			var typeArguments = getPropertyMethod.TypeParameters.Zip(getPropertyMethod.TypeArguments, (genericTypeParam, type) => new { Name = genericTypeParam.Name, Type = type });
+			var typeArguments = getPropertyMethod.TypeParameters.Zip(getPropertyMethod.TypeArguments, (genericTypeParam, type) => new { genericTypeParam.Name, Type = type });
 			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
 
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")

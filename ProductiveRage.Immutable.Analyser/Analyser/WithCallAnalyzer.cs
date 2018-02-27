@@ -119,7 +119,7 @@ namespace ProductiveRage.Immutable.Analyser
 			//
 			// This will compile (TPropertyValue willl be inferred as "Object") but we don't want to allow it since it will result in the
 			// Name property being assigned a non-string reference.
-			var typeArguments = withMethod.TypeParameters.Zip(withMethod.TypeArguments, (genericTypeParam, type) => new { Name = genericTypeParam.Name, Type = type });
+			var typeArguments = withMethod.TypeParameters.Zip(withMethod.TypeArguments, (genericTypeParam, type) => new { genericTypeParam.Name, Type = type });
 			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
 
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
