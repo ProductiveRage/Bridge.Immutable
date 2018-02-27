@@ -104,6 +104,52 @@ namespace ProductiveRage.Immutable
 			return update;
 		}
 
+		// 2018-02-27 DWR: Added this overload because, although PropertyIdentifier<T, TPropertyValue> has an implicit operator to Func<T, TPropertyValue> sometimes the C# compiler
+		// needs a helping hand in inferring types and there were times when the T and TPropertyValue type parameters would have to be specified if the method overloads that took
+		// Func<T, TPropertyValue> were used instead.
+		/// <summary>
+		/// This will take a source reference, a property identifier for a property on the source type and a new value to set for that property - it will try to clone the source
+		/// reference and then change the value of the indicated property on the new reference. Note that if the new property value is the same as the current property value on
+		/// the source reference then this process will be skipped and the source reference will be passed straight back out. The new property value may not be null - if the property
+		/// must be nullable then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though it may represent a "missing"
+		/// value).
+		/// </summary>
+		[IgnoreGeneric]
+		public static T With<T, TPropertyValue>(this T target, PropertyIdentifier<T, TPropertyValue> propertyIdentifier, TPropertyValue value) where T : IAmImmutable
+		{
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException(nameof(propertyIdentifier));
+			if (target == null)
+				throw new ArgumentNullException(nameof(target));
+			if (value == null)
+				throw new ArgumentNullException(nameof(value));
+
+			return target.With(propertyIdentifier.Method, value);
+		}
+
+		// 2018-02-27 DWR: Added this overload because, although PropertyIdentifier<T, TPropertyValue> has an implicit operator to Func<T, TPropertyValue> sometimes the C# compiler
+		// needs a helping hand in inferring types and there were times when the T and TPropertyValue type parameters would have to be specified if the method overloads that took
+		// Func<T, TPropertyValue> were used instead.
+		/// <summary>
+		/// This will take a source reference, a property identifier for a property on the source type and a lambda that will receive the current value and return a new one. It will
+		/// try to clone the source reference and then change the value of the indicated property on the new reference. An exception will also be thrown if the valueUpdater delegate
+		/// returns null - if the property must be nullable then it should have a type wrapped in an Optional struct, which will ensure that "value" itself will not be null (though
+		/// it may represent a "missing" value). Note that if the new property value is the same as the current property value on the source reference then no clone will be performed
+		/// and the source reference will be passed straight back out.
+		/// </summary>
+		[IgnoreGeneric]
+		public static T With<T, TPropertyValue>(this T target, PropertyIdentifier<T, TPropertyValue> propertyIdentifier, Func<TPropertyValue, TPropertyValue> propertyUpdater) where T : IAmImmutable
+		{
+			if (propertyIdentifier == null)
+				throw new ArgumentNullException(nameof(propertyIdentifier));
+			if (target == null)
+				throw new ArgumentNullException(nameof(target));
+			if (propertyUpdater == null)
+				throw new ArgumentNullException(nameof(propertyUpdater));
+
+			return target.With(propertyIdentifier.Method, propertyUpdater);
+		}
+
 		/// <summary>
 		/// This will take a source reference, a lambda that identifies the getter of a property on the source type and a lambda that will receive the current value and return
 		/// a new one. It will try to clone the source reference and then change the value of the indicated property on the new reference. The same restrictions that apply to
