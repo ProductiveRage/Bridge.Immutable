@@ -210,7 +210,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
-		/// TODO: Explain
+		/// If a delegate is called that has arguments annotated with the PropertyIdentifier attribute then the same logic must be applied as elsewhere - this ensures that the valid form is allowed
 		/// </summary>
 		[TestMethod]
 		public void MustAllowAttributeOnDelegateArguments()
@@ -243,9 +243,9 @@ namespace ProductiveRage.Immutable.Analyser.Test
 
 			VerifyCSharpDiagnostic(testContent);
 		}
-		
+
 		/// <summary>
-		/// TODO: Explain
+		/// If a delegate is called that has arguments annotated with the PropertyIdentifier attribute then the same logic must be applied as elsewhere - this ensures that invalid forms are caught
 		/// </summary>
 		[TestMethod]
 		public void MustVerifyWhenCallingUserDefinedDelegate()
