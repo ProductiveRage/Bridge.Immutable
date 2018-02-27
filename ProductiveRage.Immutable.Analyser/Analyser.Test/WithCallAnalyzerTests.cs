@@ -394,6 +394,143 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
+		/// If an anonymous method is passed as an argument where the receiving method is expecting a User-defined delegate and the delegate specifies the PropetyIdentifier attribute on a parameter
+		/// then everything should work the same as if a specific method was called that had the attribute on the parameter
+		/// </summary>
+		[TestMethod]
+		public void WithCallMayHaveTargetSpecifiedByDelegateArgumentIfArgumentIsAnnotatedWithPropertyIdentifierAttribute()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							UpdateProperty(property => x.With(property, 456));
+						}
+
+						private static void UpdateProperty(MyDelegate property)
+						{
+							property(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public delegate void MyDelegate([PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier);
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
+		/// A variation on WithCallMayHaveTargetSpecifiedByDelegateArgumentIfArgumentIsAnnotatedWithPropertyIdentifierAttribute where the delegate has multiple parameters (though only one of them
+		/// has the PropertyIdentifier attribute on it)
+		/// </summary>
+		[TestMethod]
+		public void WithCallMayHaveTargetSpecifiedByDelegateArgumentIfArgumentIsAnnotatedWithPropertyIdentifierAttribute_DelegateHasMultipleArgument()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							UpdateProperty((property, something) => x.With(property, 456));
+						}
+
+						private static void UpdateProperty(MyDelegate property)
+						{
+							property(_ => _.Id, ""abc"");
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public delegate void MyDelegate([PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier, string something);
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
+		/// A counterpart to WithCallMayHaveTargetSpecifiedByDelegateArgumentIfArgumentIsAnnotatedWithPropertyIdentifierAttribute that ensures that the changes to support the PropertyIdentifier attribute
+		/// on User-defined delegate has not accidentally relaxed the restrictions on delegate parameters without the attribute
+		/// </summary>
+		[TestMethod]
+		public void WithCallMayNotHaveTargetSpecifiedByDelegateArgumentIfArgumentIsNotAnnotatedWithPropertyIdentifierAttribute()
+		{
+			var testContent = @"
+				using System;
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static void Test()
+						{
+							var x = new SomethingWithAnId(123);
+							UpdateProperty(property => x.With(property, 456));
+						}
+
+						private static void UpdateProperty(MyDelegate property)
+						{
+							property(_ => _.Id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+						public int Id { get; }
+					}
+
+					public delegate void MyDelegate(Func<SomethingWithAnId, int> propertyIdentifier);
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = WithCallAnalyzer.DiagnosticId,
+				Message = WithCallAnalyzer.MethodParameterWithoutPropertyIdentifierAttributeRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 12, 42)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
+		/// <summary>
 		/// This tests the fix for Issue 6, which showed that the TPropertyValue type parameter could be a type that was less specific that the property - which would mean
 		/// that the With call would set the target property to a type that it shouldn't be possible for it to be (for example, it would allow a string property to be set
 		/// to an instance of an object that wasn't a string).

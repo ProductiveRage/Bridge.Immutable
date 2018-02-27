@@ -222,6 +222,15 @@ namespace ProductiveRage.Immutable.Analyser
 				return true;
 			}
 
+			// Does this parameter appear in an anonymous method call where the lambda is passed into a method as a delegate and the parameter on the
+			// delegate is marked as [PropertyIdentifier]? (Same applies as above; we presume that if [PropertyIdentifier] is present then it's safe
+			// to use, the PropertyIdentifierAttributeAnalyzer is responsible for making sure of that).
+			if (IsExpressionParameterInDelegateThatIsMarkedAsPropertyIdentifier(parameter, context))
+			{
+				isNotPropertyIdentifierButIsMethodParameterOfDelegateType = false;
+				return true;
+			}
+
 			// If it's not a [PropertyIdentifier] parameter but the parameter IS a delegate then return this information - it will allow us to
 			// generate more useful warnings (such as "you are trying to specify a delegate-type method parameter value, did you mean to use the
 			// [PropertyIdentifier] attriute?" instead of just saying "must be a simple property-accessing lambda").
@@ -231,6 +240,104 @@ namespace ProductiveRage.Immutable.Analyser
 				(parameterTypeNamedSymbol.DelegateInvokeMethod != null) &&
 				!parameterTypeNamedSymbol.DelegateInvokeMethod.ReturnsVoid;
 			return false;
+		}
+
+		private static bool IsExpressionParameterInDelegateThatIsMarkedAsPropertyIdentifier(IParameterSymbol parameter, SyntaxNodeAnalysisContext context)
+		{
+			if (parameter == null)
+				throw new ArgumentNullException(nameof(parameter));
+
+			// This next bit is a bit of a nightmare! If we have a delegate that has a parameter that is identified as [PropertyIdentifier] - eg.
+			//
+			//   public delegate void MyDelegate([PropertyIdentifier] Func<SomethingWithAnId, int> propertyIdentifier, string something);
+			//
+			// then we might want use the [PropertyIdentifier] parameter in a "With" call. Something like this:
+			//
+			//   UpdateProperty((property, something) => x.With(property, 456));
+			//
+			// where UpdateProperty is a function taking a MyDelegate reference -
+			//
+			//   private static void UpdateProperty(MyDelegate property)
+			//   {
+			//     property(_ => _.Id, ""abc"");
+			//   }
+			//
+			// Elsewhere we will ensure that the lamba passed as the [PropertyIdentifier] value is of the correct form and here we just need to ensure that the "property" value being passed to
+			// "With" has [PropertyIdentifier] on it. The problem is that Roslyn identifies the "(property, something) => x.With(property, 456)" lambda only as an
+			//
+			//   Action<Func<SomethingWithAnId, int>, string>
+			//
+			// and NOT as a
+			//
+			//   MyDelegate
+			//
+			// and so we can't easily see that we're passing that lambda in somewhere that it IS a MyDelegate and so we can't easily see that it will have to meet the [PropertyIdentifier] restrictions.
+			// Instead, we have to do some more work - we need to look at the method that the lambda is being passed to and see if IT'S method signature specifies the lambda as a delegate and, if so,
+			// whether the parameter of that lambda is marked as [PropertyIdentifier] in the delegate's definition.
+
+			// Try to get the place in the source code where the parameter is declared (not just where it's being used but where it is first declared)..
+			var parameterDeclaringSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax() as ParameterSyntax;
+			if ((parameterDeclaringSyntax == null) || (parameter.DeclaringSyntaxReferences.Count() != 1))
+				return false;
+
+			// .. and confirm that the place at which it is declared is as a parameter to an anonymous method (if not then we're not interested in it)
+			var containingAnonymousMethod = parameter.ContainingSymbol as IMethodSymbol;
+			if ((containingAnonymousMethod == null) || (containingAnonymousMethod.MethodKind != MethodKind.AnonymousFunction) || (containingAnonymousMethod.DeclaringSyntaxReferences.Count() != 1))
+				return false;
+
+			// Work out which parameter of the anonymous method it is that we're looking at (if we're mapping the anonymous method onto a User-defined delegate then we need to ensure that the parameter
+			// we're looking at is one of the ones with [PropertyIdentifier] since there may be parameters with it and parameters without it)
+			int parameterIndexInDelegate;
+			var anonymousMethodSyntax = containingAnonymousMethod.DeclaringSyntaxReferences[0].GetSyntax();
+			var parenthesizedLambdaMethodSyntax = anonymousMethodSyntax as ParenthesizedLambdaExpressionSyntax; // Anonymous method with brackets around the zero, single or multiple parameters
+			if (parenthesizedLambdaMethodSyntax != null)
+			{
+				var indexedParameter = parenthesizedLambdaMethodSyntax.ParameterList.Parameters
+					.Select((p, i) => new { Parameter = p, Index = i })
+					.FirstOrDefault(indexedParam => indexedParam.Parameter == parameterDeclaringSyntax);
+				parameterIndexInDelegate = (indexedParameter == null) ? -1 : indexedParameter.Index;
+			}
+			else
+			{
+				var nonParenthesizedLambdaMethodSyntax = anonymousMethodSyntax as SimpleLambdaExpressionSyntax; // Anonymous method with a single parameter and no brackets around it
+				if (nonParenthesizedLambdaMethodSyntax != null)
+					parameterIndexInDelegate = 0;
+				else
+					return false;
+			}
+
+			// We're only supporting the case where the lambda is passed directly into a method - this probably means that there are SOME cases where [PropertyIdentifier] isn't recognised quite
+			// right (and so potentially false positives of the "you are not allowed to do this" type) but this is still an improvement. As such, we're presuming that the anonymous method is being
+			// passed to a method, in which case the anonymous method's parent will be an argument syntax whose parent will be an argument list syntax whose parent will be a method invocation).
+			var arg = anonymousMethodSyntax.Parent as ArgumentSyntax;
+			if (arg == null)
+				return false;
+			var argList = arg.Parent as ArgumentListSyntax;
+			if (argList == null)
+				return false;
+			var invocation = argList.Parent as InvocationExpressionSyntax;
+			if (invocation == null)
+				return false;
+
+			// The anonymous method may be one of multiple arguments passed to the target method - we need to known which one it is so that we can work out what type it is (whether it is a User-
+			// defined delegate)
+			var indexedArgument = argList.Arguments.Select((a, i) => new { Argument = a, Index = i }).FirstOrDefault(indexedArg => indexedArg.Argument == arg);
+			if (indexedArgument == null)
+				return false;
+
+			// Get the target method that is being called (that the anonymous method is being passed in as an argument for)
+			var invocationExpressionSymbol = context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol as IMethodSymbol;
+			if ((invocationExpressionSymbol == null) || (indexedArgument.Index >= invocationExpressionSymbol.Parameters.Length)) // Length check just in case we're analysing invalid C#
+				return false;
+
+			// Get the parameter of the method that we're passing the anonymous method in as the value for and determine whether it's a delegate or not
+			var invocationTargetParameterType = invocationExpressionSymbol.Parameters[indexedArgument.Index].Type;
+			var delegateInfo = (invocationTargetParameterType as INamedTypeSymbol)?.DelegateInvokeMethod;
+			if ((delegateInfo == null) || (parameterIndexInDelegate >= delegateInfo.Parameters.Length)) // Length check just in case we're analysing invalid C#
+				return false;
+
+			// If it IS a delegate then we just need to check whether the parameter that we're providing with the original "parameter" reference has [PropertyIdentifier] on it or not! Phew!
+			return HasPropertyIdentifierAttribute(delegateInfo.Parameters[parameterIndexInDelegate]);
 		}
 
 		public static bool HasPropertyIdentifierAttribute(IParameterSymbol parameter)
