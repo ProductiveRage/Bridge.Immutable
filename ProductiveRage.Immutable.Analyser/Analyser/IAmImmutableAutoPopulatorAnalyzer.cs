@@ -93,12 +93,12 @@ namespace ProductiveRage.Immutable.Analyser
 			// Ignore parameters that are passed to a base constructor
 			if (constructor.Initializer != null)
 			{
-				var argumentsUsedInBaseConstructor = constructor.Initializer.ArgumentList.Arguments
-					.Where(baseConstructorArgument => baseConstructorArgument.Expression is IdentifierNameSyntax)
-					.Select(baseConstructorArgument => ((IdentifierNameSyntax)baseConstructorArgument.Expression).Identifier.Text)
-					.ToArray();
-				constructorArguments = constructorArguments
-					.Where(constructorArgument => !argumentsUsedInBaseConstructor.Contains(constructorArgument.Identifier.Text));
+				var identifiersDirectlyUsedInBaseCallArguments = constructor.Initializer.ArgumentList.DescendantNodes()
+					.OfType<IdentifierNameSyntax>()
+					.Where(i => !(i.Parent is MemberAccessExpressionSyntax)) // Ignore member access (eg. the "_ => _.Id" in "this.CtorSet(_ => _.Id, id)")
+					.Select(i => i.Identifier.Text)
+					.ToArray(); // Use ToArray to evaluate since we'll access this data at least once and potentially multiple times on the line below
+				constructorArguments = constructorArguments.Where(a => !identifiersDirectlyUsedInBaseCallArguments.Contains(a.Identifier.Text));
 			}
 			return constructorArguments;
 		}

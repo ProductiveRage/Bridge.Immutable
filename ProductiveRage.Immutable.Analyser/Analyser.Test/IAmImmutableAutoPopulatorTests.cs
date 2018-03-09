@@ -654,6 +654,44 @@ namespace ProductiveRage.Immutable.Analyser.Test
 		}
 
 		/// <summary>
+		/// The analyser realised that constructor arguments were being used if they were passed directly into the base constructor but if they were passed into a function whose
+		/// return value was passed into the base constructor then the analyser didn't realise this and complained that the constructor argument was not being used
+		/// </summary>
+		[TestMethod]
+		public void DoNotFalselyIdentifyConstructorArgumentThatIsPassedToBaseConstructorOtherThanDirectlyAsAnArgument()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : SomethingWithKey, IAmImmutable
+					{
+						public EmployeeDetails(int id, string key) : base(Something(key))
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+
+						public int Id { get; }
+
+						private static string Something(string value) { return value; }
+					}
+
+					public class SomethingWithKey
+					{
+						public SomethingWithKey(string key)
+						{
+							Key = key;
+						}
+
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
+		/// <summary>
 		/// When the code fix adds lines, it uses spaces instead of tabs (which I use in the files here) and so it's easiest to just replace tabs with runs of four spaces before
 		/// making comparisons between before and after values. The strings in this file are also indented so that they appear "within" the containing method, rather than being
 		/// aligned to the zero column in the editor, but this offset will not respected by lines added by the code fix - so it's just easiest to remove the offset from each
