@@ -36,7 +36,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -90,7 +90,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -153,7 +153,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -215,7 +215,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "ManagerDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "ManagerDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -289,7 +289,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -350,7 +350,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.Rule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.EmptyConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -413,6 +413,244 @@ namespace ProductiveRage.Immutable.Analyser.Test
 				}";
 
 			VerifyCSharpDiagnostic(testContent);
+		}
+
+		[TestMethod]
+		public void NewConstructorArgumentNeedsToBePropagated()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+
+						public int Id { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
+		}
+
+		[TestMethod]
+		public void NewConstructorArgumentExistsAsPropertyButCtorSetCallIsMissing()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
+		}
+
+		[TestMethod]
+		public void NewConstructorArgumentNeedsToBePropagatedAndValidateCallMustBeAdded()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+						}
+
+						private void Validate()
+						{
+						}
+
+						public int Id { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+							Validate();
+						}
+
+						private void Validate()
+						{
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
+		}
+
+		[TestMethod]
+		public void NewConstructorArgumentNeedsToBePropagatedAndExistingValidateCallMustBeMoved()
+		{
+			// Just for fun, there is some whitespace and a comment before the Validate call ("trivia" in Roslyn terms) that should still be with the Validate call after
+			// the autopopulator has done its work
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+
+							// Validate!
+							Validate();
+						}
+
+						private void Validate()
+						{
+						}
+
+						public int Id { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Severity = DiagnosticSeverity.Warning,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 8, 7)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+
+			var fixContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class EmployeeDetails : IAmImmutable
+					{
+						public EmployeeDetails(int id, string name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+
+							// Validate!
+							Validate();
+						}
+
+						private void Validate()
+						{
+						}
+
+						public int Id { get; }
+						public string Name { get; }
+					}
+				}";
+
+			VerifyCSharpFix(GetStringForCodeFixComparison(testContent), GetStringForCodeFixComparison(fixContent));
 		}
 
 		/// <summary>

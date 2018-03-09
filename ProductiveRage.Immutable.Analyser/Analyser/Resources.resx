@@ -150,8 +150,11 @@
   <data name="IAmImmutableAnalyserTitle" xml:space="preserve">
     <value>Properties on IAmImmutable must follow prescribed guidelines</value>
   </data>
-  <data name="IAmImmutableAutoPopulatorAnalyserMessageFormat" xml:space="preserve">
+  <data name="IAmImmutableAutoPopulatorAnalyserEmptyConstructorMessageFormat" xml:space="preserve">
     <value>IAmImmutable implementation '{0}' has an empty constructor that may be used to populate the class</value>
+  </data>
+  <data name="IAmImmutableAutoPopulatorAnalyserOutOfSyncConstructorMessageFormat" xml:space="preserve">
+    <value>IAmImmutable implementation '{0}' has a constructor arguments that are not used to set properties</value>
   </data>
   <data name="IAmImmutableAutoPopulatorAnalyserTitle" xml:space="preserve">
     <value>IAmImmutable implementation may be auto-generated</value>

@@ -20,7 +20,7 @@ namespace ProductiveRage.Immutable.Analyser {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -163,9 +163,18 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has an empty constructor that may be used to populate the class.
         /// </summary>
-        internal static string IAmImmutableAutoPopulatorAnalyserMessageFormat {
+        internal static string IAmImmutableAutoPopulatorAnalyserEmptyConstructorMessageFormat {
             get {
-                return ResourceManager.GetString("IAmImmutableAutoPopulatorAnalyserMessageFormat", resourceCulture);
+                return ResourceManager.GetString("IAmImmutableAutoPopulatorAnalyserEmptyConstructorMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has a constructor arguments that are not used to set properties.
+        /// </summary>
+        internal static string IAmImmutableAutoPopulatorAnalyserOutOfSyncConstructorMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutableAutoPopulatorAnalyserOutOfSyncConstructorMessageFormat", resourceCulture);
             }
         }
         

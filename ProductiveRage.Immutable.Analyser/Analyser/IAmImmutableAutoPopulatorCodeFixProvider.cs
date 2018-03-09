@@ -66,20 +66,41 @@ namespace ProductiveRage.Immutable.Analyser
 				)
 				.FirstOrDefault();
 
-			// Get all of the arguments of that constructor that are not passed to a base constructor
-			var constructorArguments = IAmImmutableAutoPopulatorAnalyzer.GetConstructorArgumentsThatAreNotPassedToBaseConstructor(constructorDeclaration);
-
 			// Add the CtorSet calls to the constructor
+			var constructorArgumentNamesThatAppearToBeUsed = constructorDeclaration.Body.DescendantNodes()
+				.OfType<IdentifierNameSyntax>()
+				.Where(i => !(i.Parent is MemberAccessExpressionSyntax)) // Ignore member access (eg. the "_ => _.Id" in "this.CtorSet(_ => _.Id, id)")
+				.Select(i => i.Identifier.Text);
 			var newConstructorBody = constructorDeclaration.Body.AddStatements(
-					constructorArguments
-					.Select(constructorArgument => GeneratorCtorSetCall(
-						GetPropertyName(constructorArgument.Identifier.Text),
-						constructorArgument.Identifier.Text
-					))
+				IAmImmutableAutoPopulatorAnalyzer.GetConstructorArgumentNamesThatAreNotAccountedFor(constructorDeclaration)
+					.Select(argument => GeneratorCtorSetCall(GetPropertyName(argument.Identifier.Text), argument.Identifier.Text))
 					.ToArray()
 			);
 			if (validateMethodIfDefined != null)
-				newConstructorBody = newConstructorBody.AddStatements(GetValidateCall());
+			{
+				var existingValidateCalls = newConstructorBody.Statements
+					.OfType<ExpressionStatementSyntax>()
+					.Where(expression =>
+					{
+						var invocationExpression = expression.Expression as InvocationExpressionSyntax;
+						if (invocationExpression == null)
+							return false;
+						var identifier = invocationExpression.Expression as IdentifierNameSyntax;
+						if (identifier == null)
+							return false;
+						return identifier.Identifier.Text == "Validate";
+					});
+				if (existingValidateCalls.Any())
+				{
+					var updatedStatements = newConstructorBody.Statements;
+					foreach (var existingValidateCall in existingValidateCalls)
+						updatedStatements = updatedStatements.Remove(existingValidateCall);
+					updatedStatements = updatedStatements.AddRange(existingValidateCalls);
+					newConstructorBody = newConstructorBody.WithStatements(updatedStatements);
+				}
+				else
+					newConstructorBody = newConstructorBody.AddStatements(GetValidateCall());
+			}
 			var populatedConstructor = constructorDeclaration.WithBody(newConstructorBody);
 
 			// Add properties to the class that correspond to the constructor arguments (ignoring any properties that are already declared - there aren't
@@ -91,7 +112,7 @@ namespace ProductiveRage.Immutable.Analyser
 				.Where(property => property.ExplicitInterfaceSpecifier == null) // Don't consider explicitly-implemented interface properties
 				.Select(property => property.Identifier.Text)
 				.ToArray();
-			var propertiesToAdd = constructorArguments
+			var propertiesToAdd = IAmImmutableAutoPopulatorAnalyzer.GetConstructorArgumentsThatAreNotPassedToBaseConstructor(constructorDeclaration)
 				.Select(constructorArgument => new { Argument = constructorArgument, PropertyName = GetPropertyName(constructorArgument.Identifier.Text) })
 				.Where(argumentDetails => !namesOfPropertiesDefinedOnClass.Contains(argumentDetails.PropertyName))
 				.Select(argumentDetails =>
