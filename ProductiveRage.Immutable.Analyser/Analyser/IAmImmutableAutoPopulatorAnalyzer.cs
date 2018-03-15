@@ -64,10 +64,21 @@ namespace ProductiveRage.Immutable.Analyser
 				Diagnostic diagnosticToRaise;
 				if (!constructor.Body.ChildNodes().Any())
 					diagnosticToRaise = Diagnostic.Create(EmptyConstructorRule, constructor.GetLocation(), classDeclaration.Identifier.Text);
-				else if (GetConstructorArgumentNamesThatAreNotAccountedFor(constructor).Any())
-					diagnosticToRaise = Diagnostic.Create(OutOfSyncConstructorRule, constructor.GetLocation(), classDeclaration.Identifier.Text);
 				else
-					continue;
+				{
+					var unaccountedForConstructorArguments = GetConstructorArgumentNamesThatAreNotAccountedFor(constructor);
+					if (unaccountedForConstructorArguments.Any())
+					{
+						diagnosticToRaise = Diagnostic.Create(
+							OutOfSyncConstructorRule,
+							constructor.GetLocation(),
+							classDeclaration.Identifier.Text,
+							string.Join(", ", unaccountedForConstructorArguments.Select(p => p.Identifier.Text))
+						);
+					}
+					else
+						continue;
+				}
 
 				// If the class doesn't implement IAmImmutable then we don't need to consider this constructor or any other constructor on it. It may
 				// require looking at other files (if this class derives from another class, which implements IAmImmutable), though, so it makes sense

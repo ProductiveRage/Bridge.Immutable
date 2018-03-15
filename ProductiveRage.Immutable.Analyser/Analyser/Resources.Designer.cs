@@ -170,7 +170,7 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has constructor argument(s) that are not used to set properties.
+        ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has constructor argument(s) that are not used to set properties: {1}.
         /// </summary>
         internal static string IAmImmutableAutoPopulatorAnalyserOutOfSyncConstructorMessageFormat {
             get {

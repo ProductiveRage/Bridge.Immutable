@@ -437,7 +437,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails", "name"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -491,7 +491,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails", "name"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -548,7 +548,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails", "name"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
@@ -615,7 +615,7 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			var expected = new DiagnosticResult
 			{
 				Id = IAmImmutableAutoPopulatorAnalyzer.DiagnosticId,
-				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails"),
+				Message = string.Format(IAmImmutableAutoPopulatorAnalyzer.OutOfSyncConstructorRule.MessageFormat.ToString(), "EmployeeDetails", "name"),
 				Severity = DiagnosticSeverity.Warning,
 				Locations = new[]
 				{
