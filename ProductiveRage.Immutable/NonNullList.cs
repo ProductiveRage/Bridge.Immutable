@@ -307,15 +307,30 @@ namespace ProductiveRage.Immutable
 			if (mapper == null)
 				throw new ArgumentNullException(nameof(mapper));
 
+			return Map((item, index) => mapper(item));
+		}
+
+		/// <summary>
+		/// This will return a new NonNullList of different element type, where each item has processed with the specified mapper delegate. It is not valid for the mapper
+		/// to return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If
+		/// the target element type is the same current element type then UpdateAll is a more appropriate method to use as it is able to return the same NonNullList
+		/// instance if the mapper doesn't change any item.
+		/// </summary>
+		public NonNullList<TDest> Map<TDest>(Func<T, uint, TDest> mapper)
+		{
+			if (mapper == null)
+				throw new ArgumentNullException(nameof(mapper));
+
 			if (_headIfAny == null)
 				return NonNullList<TDest>.Empty;
 
+			uint index = 0;
 			NonNullList<TDest>.Node newHeadIfAny = null;
 			NonNullList<TDest>.Node previousNewNodeIfAny = null;
 			var node = _headIfAny;
 			while (node != null)
 			{
-				var value = mapper(node.Item);
+				var value = mapper(node.Item, index);
 				if (value == null)
 					throw new ArgumentException($"Specified {mapper} returned null value - invalid");
 				var newNode = new NonNullList<TDest>.Node
@@ -329,6 +344,7 @@ namespace ProductiveRage.Immutable
 					previousNewNodeIfAny.NextIfAny = newNode;
 				previousNewNodeIfAny = newNode;
 				node = node.NextIfAny;
+				index++;
 			}
 			return new NonNullList<TDest>(newHeadIfAny);
 		}

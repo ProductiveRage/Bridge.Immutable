@@ -196,6 +196,24 @@ namespace ProductiveRage.Immutable.Tests
 					}
 				}
 			});
+
+			QUnit.Test("NonNullList.Map - items change (no index passed to lambda)", assert =>
+			{
+				var actual = NonNullList.Of(1, 2, 3, 4).Map(value => value + 1);
+				assert.Equal(
+					actual: string.Join(",", actual),
+					expected: "2,3,4,5"
+				);
+			});
+
+			QUnit.Test("NonNullList.Map - items change (index passed to lambda)", assert =>
+			{
+				var actual = NonNullList.Of(1, 2, 3, 4).Map((value, index) => value + index);
+				assert.Equal(
+					actual: string.Join(",", actual),
+					expected: "1,3,5,7"
+				);
+			});
 		}
 
 		private static IEnumerable<int[]> GetPermutations(params int[] values)
