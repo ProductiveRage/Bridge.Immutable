@@ -214,6 +214,15 @@ namespace ProductiveRage.Immutable.Tests
 					expected: "1,3,5,7"
 				);
 			});
+
+			QUnit.Test("NonNullList.Map - items don't change and so list returning unaltered", assert =>
+			{
+				var items = NonNullList.Of(1, 2, 3, 4);
+				assert.Equal(
+					actual: items.Map(value => value),
+					expected: items
+				);
+			});
 		}
 
 		private static IEnumerable<int[]> GetPermutations(params int[] values)

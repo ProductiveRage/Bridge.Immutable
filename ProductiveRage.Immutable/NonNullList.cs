@@ -299,8 +299,7 @@ namespace ProductiveRage.Immutable
 		/// <summary>
 		/// This will return a new NonNullList of different element type, where each item has processed with the specified mapper delegate. It is not valid for the mapper
 		/// to return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If
-		/// the target element type is the same current element type then UpdateAll is a more appropriate method to use as it is able to return the same NonNullList
-		/// instance if the mapper doesn't change any item.
+		/// none of the items are changed and TDest matches the item type of the current list then the current list will be returned unaltered.
 		/// </summary>
 		public NonNullList<TDest> Map<TDest>(Func<T, TDest> mapper)
 		{
@@ -313,8 +312,7 @@ namespace ProductiveRage.Immutable
 		/// <summary>
 		/// This will return a new NonNullList of different element type, where each item has processed with the specified mapper delegate. It is not valid for the mapper
 		/// to return a null reference, this data type will not store null references (if there may be missing values then the type parameter should be an Optional). If
-		/// the target element type is the same current element type then UpdateAll is a more appropriate method to use as it is able to return the same NonNullList
-		/// instance if the mapper doesn't change any item.
+		/// none of the items are changed and TDest matches the item type of the current list then the current list will be returned unaltered.
 		/// </summary>
 		public NonNullList<TDest> Map<TDest>(Func<T, uint, TDest> mapper)
 		{
@@ -325,6 +323,7 @@ namespace ProductiveRage.Immutable
 				return NonNullList<TDest>.Empty;
 
 			uint index = 0;
+			var changedAnyValues = false;
 			NonNullList<TDest>.Node newHeadIfAny = null;
 			NonNullList<TDest>.Node previousNewNodeIfAny = null;
 			var node = _headIfAny;
@@ -333,6 +332,8 @@ namespace ProductiveRage.Immutable
 				var value = mapper(node.Item, index);
 				if (value == null)
 					throw new ArgumentException($"Specified {mapper} returned null value - invalid");
+				if (!value.Equals(node.Item))
+					changedAnyValues = true;
 				var newNode = new NonNullList<TDest>.Node
 				{
 					Count = node.Count,
@@ -345,6 +346,15 @@ namespace ProductiveRage.Immutable
 				previousNewNodeIfAny = newNode;
 				node = node.NextIfAny;
 				index++;
+			}
+			if (!changedAnyValues && (typeof(TDest) == typeof(T)))
+			{
+				// 2018-03-29 DWR: We can't do this in .NET and so I didn't want to do it in the Bridge code - but I have forgotten before that Map returns a new
+				// instance even if none of the items have changed and so I would LIKE this to be the default behaviour! If this gets added to the .NET version
+				// then I might consider trying a Map overload that doesn't take a type parameter so that if a mapper is passed that uses the same T then we
+				// CAN do this sort of thing (reusing the current reference).. but then it would be identical to UpdateAll (and I'm not sure how good C#'s
+				// method overload resolution is when it comes to generic type parameters and so I'd have to experiment a bit).
+				return Script.Write<NonNullList<TDest>>("{0}", this);
 			}
 			return new NonNullList<TDest>(newHeadIfAny);
 		}
