@@ -348,14 +348,7 @@ namespace ProductiveRage.Immutable
 				index++;
 			}
 			if (!changedAnyValues && (typeof(TDest) == typeof(T)))
-			{
-				// 2018-03-29 DWR: We can't do this in .NET and so I didn't want to do it in the Bridge code - but I have forgotten before that Map returns a new
-				// instance even if none of the items have changed and so I would LIKE this to be the default behaviour! If this gets added to the .NET version
-				// then I might consider trying a Map overload that doesn't take a type parameter so that if a mapper is passed that uses the same T then we
-				// CAN do this sort of thing (reusing the current reference).. but then it would be identical to UpdateAll (and I'm not sure how good C#'s
-				// method overload resolution is when it comes to generic type parameters and so I'd have to experiment a bit).
-				return Script.Write<NonNullList<TDest>>("{0}", this);
-			}
+				return (NonNullList<TDest>)(object)this;
 			return new NonNullList<TDest>(newHeadIfAny);
 		}
 
