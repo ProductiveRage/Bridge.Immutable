@@ -171,7 +171,7 @@
   <data name="IAmImmutablePropertiesMustNotHaveBridgeAttributesMessageFormat" xml:space="preserve">
     <value>May not have Bridge attributes on properties with getters ({0}) on classes that implement IAmImmutable</value>
   </data>
-  <data name="IAmImmutableValidationShouldNotBePerformedInConstructor" xml:space="preserve">
+  <data name="IAmImmutableValidationShouldNotBePerformedInConstructorMessageFormat" xml:space="preserve">
     <value>When new IAmImmutable instances are created via "With" calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a "Validate" method to the class and call it at the end of the constructor, it will also be called whenever "With"creates a new instance. The "Validate" method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private).</value>
   </data>
   <data name="MethodParameterWithoutPropertyIdentifierAttribute" xml:space="preserve">
@@ -201,7 +201,7 @@
   <data name="ReadOnlyPropertyAccessedMessageFormat" xml:space="preserve">
     <value>Properties annotated with [ReadOnly] may only be targeted by "CtorSet" (not "With" or "GetProperty"and are not elligible as [PropertyIdentifier] values)</value>
   </data>
-  <data name="TPropertyValueNotSpecificEnough" xml:space="preserve">
+  <data name="TPropertyValueNotSpecificEnoughMessageFormat" xml:space="preserve">
     <value>TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type "{0}" and so the type of the value that will be used to update the property must be this type or one derived from it (which "{1}" is not)</value>
   </data>
   <data name="WithAnalyserTitle" xml:space="preserve">

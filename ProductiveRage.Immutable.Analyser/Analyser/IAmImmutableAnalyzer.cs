@@ -49,7 +49,7 @@ namespace ProductiveRage.Immutable.Analyser
 		public static DiagnosticDescriptor ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
-			GetLocalizableString(nameof(Resources.IAmImmutableValidationShouldNotBePerformedInConstructor)),
+			GetLocalizableString(nameof(Resources.IAmImmutableValidationShouldNotBePerformedInConstructorMessageFormat)),
 			Category,
 			DiagnosticSeverity.Warning,
 			isEnabledByDefault: true

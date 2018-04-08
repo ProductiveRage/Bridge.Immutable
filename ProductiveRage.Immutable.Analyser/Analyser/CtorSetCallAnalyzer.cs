@@ -55,7 +55,7 @@ namespace ProductiveRage.Immutable.Analyser
 		public static DiagnosticDescriptor PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule = new DiagnosticDescriptor(
 			DiagnosticId,
 			GetLocalizableString(nameof(Resources.CtorAnalyserTitle)),
-			GetLocalizableString(nameof(Resources.TPropertyValueNotSpecificEnough)),
+			GetLocalizableString(nameof(Resources.TPropertyValueNotSpecificEnoughMessageFormat)),
 			Category,
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true

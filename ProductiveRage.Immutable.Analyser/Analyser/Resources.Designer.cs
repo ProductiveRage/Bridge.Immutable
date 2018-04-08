@@ -226,9 +226,9 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to When new IAmImmutable instances are created via &quot;With&quot; calls, the constructor is not called and so any validation there will be bypassed. If parameter validation is required then you may add a &quot;Validate&quot; method to the class and call it at the end of the constructor, it will also be called whenever &quot;With&quot;creates a new instance. The &quot;Validate&quot; method must have no parameters and must not be decorated with any Bridge attributes (it is acceptable for the method to be private)..
         /// </summary>
-        internal static string IAmImmutableValidationShouldNotBePerformedInConstructor {
+        internal static string IAmImmutableValidationShouldNotBePerformedInConstructorMessageFormat {
             get {
-                return ResourceManager.GetString("IAmImmutableValidationShouldNotBePerformedInConstructor", resourceCulture);
+                return ResourceManager.GetString("IAmImmutableValidationShouldNotBePerformedInConstructorMessageFormat", resourceCulture);
             }
         }
         
@@ -316,9 +316,9 @@ namespace ProductiveRage.Immutable.Analyser {
         /// <summary>
         ///   Looks up a localized string similar to TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type &quot;{0}&quot; and so the type of the value that will be used to update the property must be this type or one derived from it (which &quot;{1}&quot; is not).
         /// </summary>
-        internal static string TPropertyValueNotSpecificEnough {
+        internal static string TPropertyValueNotSpecificEnoughMessageFormat {
             get {
-                return ResourceManager.GetString("TPropertyValueNotSpecificEnough", resourceCulture);
+                return ResourceManager.GetString("TPropertyValueNotSpecificEnoughMessageFormat", resourceCulture);
             }
         }
         
