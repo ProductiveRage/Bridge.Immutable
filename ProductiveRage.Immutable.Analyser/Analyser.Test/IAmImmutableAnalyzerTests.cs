@@ -462,6 +462,43 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			}
 
 			/// <summary>
+			/// If one constructor calls another constructor within the same class then it's possible that the second constructor will call Validate and so we don't have to require that the first one does
+			/// </summary>
+			[TestMethod]
+			public void ValidateDoesNotNeedToBeCalledFromConstructorIfConstructorCallsAnotherConstructorOverloadDeclaredByClass()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id) : this(id, Optional<int>.Missing) { }
+							public SomethingWithAnId(int id, Optional<int> other)
+							{
+								this.CtorSet(_ => _.Id, id);
+								this.CtorSet(_ => _.Other, other);
+								Validate();
+							}
+
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+							public Optional<int> Other { get; }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			/// <summary>
 			/// While it looks like it's clearly a mistake to not call Validate in this case, classes that don't implement IAmImmutable are not our concern (and it may well be acceptable
 			/// for them to have a Validate method that isn't called from the constructor), so ensure that we don't interfere in that case
 			/// </summary>

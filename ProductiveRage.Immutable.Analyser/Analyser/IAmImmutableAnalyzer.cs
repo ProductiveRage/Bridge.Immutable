@@ -160,6 +160,10 @@ namespace ProductiveRage.Immutable.Analyser
 				var constructorsThatNeedToWarnAreNotCallingValidate = instanceConstructors
 					.Except(constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable) // Don't warn about any constructors that are already being identified as needing attention
 					.Where(instanceConstructor =>
+						// If this constructors calls another of the constructor overloads then don't warn (only warn about constructors that DON'T call another overload)
+						(instanceConstructor.Initializer == null) || (instanceConstructor.Initializer.Kind() != SyntaxKind.ThisConstructorInitializer)
+					)
+					.Where(instanceConstructor =>
 						!instanceConstructor.Body.ChildNodes()
 							.OfType<ExpressionStatementSyntax>()
 							.Select(expressionStatement => expressionStatement.Expression as InvocationExpressionSyntax)
