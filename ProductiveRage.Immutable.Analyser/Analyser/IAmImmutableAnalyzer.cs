@@ -54,6 +54,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Warning,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor ConstructorDoesNotCallValidateMethod = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.IAmImmutableAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.IAmImmutableConstructorDoesNotCallValidateMethodMessageFormat)),
+			Category,
+			DiagnosticSeverity.Warning,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -63,7 +71,8 @@ namespace ProductiveRage.Immutable.Analyser
 					MayNotHavePublicNonReadOnlyFieldsRule,
 					MustHaveSettersOnPropertiesWithGettersAccessRule,
 					MayNotHaveBridgeAttributesOnPropertiesWithGettersAccessRule,
-					ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod
+					ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod,
+					ConstructorDoesNotCallValidateMethod
 				);
 			}
 		}
@@ -140,6 +149,31 @@ namespace ProductiveRage.Immutable.Analyser
 						context.ReportDiagnostic(Diagnostic.Create(
 							ConstructorWithLogicOtherThanCtorSetCallsShouldUseValidateMethod,
 							constructorThatShouldUseValidateMethod.GetLocation()
+						));
+					}
+				}
+			}
+
+			// If there is a Validate method that should be called and this constructor isn't calling it then warn
+			if (HasValidateMethodThatThisClassMustCall(classDeclaration))
+			{
+				var constructorsThatNeedToWarnAreNotCallingValidate = instanceConstructors
+					.Except(constructorsThatShouldUseValidateMethodIfClassImplementsIAmImmutable) // Don't warn about any constructors that are already being identified as needing attention
+					.Where(instanceConstructor =>
+						!instanceConstructor.Body.ChildNodes()
+							.OfType<ExpressionStatementSyntax>()
+							.Select(expressionStatement => expressionStatement.Expression as InvocationExpressionSyntax)
+							.Where(invocation => (invocation != null) && InvocationIsAllowableValidateCall(invocation, context))
+							.Any()
+					);
+				if (constructorsThatNeedToWarnAreNotCallingValidate.Any() && classImplementIAmImmutable.Value)
+				{
+					foreach (var constructorThatShouldUseValidateMethod in constructorsThatNeedToWarnAreNotCallingValidate)
+					{
+						context.ReportDiagnostic(Diagnostic.Create(
+							ConstructorDoesNotCallValidateMethod,
+							constructorThatShouldUseValidateMethod.GetLocation(),
+							classDeclaration.Identifier.Text
 						));
 					}
 				}
@@ -244,6 +278,20 @@ namespace ProductiveRage.Immutable.Analyser
 			return
 				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PrivateKeyword)) ||
 				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ProtectedKeyword));
+		}
+
+		private static bool HasValidateMethodThatThisClassMustCall(ClassDeclarationSyntax classDeclaration)
+		{
+			if (classDeclaration == null)
+				throw new ArgumentNullException(nameof(classDeclaration));
+
+			// 2018-04-08 DWR: This only checks for a Validate method declared on the current class - if there is one on a type that it is derived from then the responsibility is on that base
+			// type to call it (if that base type doesn't also implement IAmImmutable then this analyser won't be run on it and so it's still possible that the Validate method won't be called
+			// from the base type's constructor but we can't know for sure one way or the other if that other class is defined in an assembly that we don't have access to the source of and so
+			// we can't be 100% sure one way or the other, so let's keep it simple)
+			return classDeclaration.ChildNodes()
+				.OfType<MethodDeclarationSyntax>()
+				.Any(method => (method.Identifier.Text == "Validate") && !method.Modifiers.Any(modifier => modifier.Kind() == SyntaxKind.StaticKeyword) && !method.ParameterList.Parameters.Any());
 		}
 
 		private static bool InvocationIsCtorSetCall(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)

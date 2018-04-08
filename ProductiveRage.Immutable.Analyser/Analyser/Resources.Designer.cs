@@ -188,6 +188,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IAmImmutable implementation &apos;{0}&apos; has a constructor that does not call the class&apos; Validate method.
+        /// </summary>
+        internal static string IAmImmutableConstructorDoesNotCallValidateMethodMessageFormat {
+            get {
+                return ResourceManager.GetString("IAmImmutableConstructorDoesNotCallValidateMethodMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IAmImmutable implementations may not have non-readonly public fields (such as {0}).
         /// </summary>
         internal static string IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat {

@@ -421,6 +421,80 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			}
 
 			[TestMethod]
+			public void ValidateShouldBeCalledFromConstructorIfMethodIsPresent()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id)
+							{
+								this.CtorSet(_ => _.Id, id);
+							}
+
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				var expected = new DiagnosticResult
+				{
+					Id = IAmImmutableAnalyzer.DiagnosticId,
+					Message = string.Format(IAmImmutableAnalyzer.ConstructorDoesNotCallValidateMethod.MessageFormat.ToString(), "SomethingWithAnId"),
+					Severity = DiagnosticSeverity.Warning,
+					Locations = new[]
+					{
+						new DiagnosticResultLocation("Test0.cs", 9, 8)
+					}
+				};
+
+				VerifyCSharpDiagnostic(testContent, expected);
+			}
+
+			/// <summary>
+			/// While it looks like it's clearly a mistake to not call Validate in this case, classes that don't implement IAmImmutable are not our concern (and it may well be acceptable
+			/// for them to have a Validate method that isn't called from the constructor), so ensure that we don't interfere in that case
+			/// </summary>
+			[TestMethod]
+			public void ValidateCallCheckShouldOnlyApplyToIAmImmutableImplementations()
+			{
+				var testContent = @"
+					using Bridge;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId
+						{
+							public SomethingWithAnId(int id)
+							{
+								Id = id;
+							}
+
+							private void Validate()
+							{
+								// I only like positives
+								if (Id <= 0)
+									throw new ArgumentOutOfRangeException(""Id must be a positive value"");
+							}
+
+							public int Id { get; }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			[TestMethod]
 			public void ValidateMethodMayNotHaveAnyBridgeAttributesSinceItIsPresumedToHaveKnownNameAtRuntime()
 			{
 				var testContent = @"

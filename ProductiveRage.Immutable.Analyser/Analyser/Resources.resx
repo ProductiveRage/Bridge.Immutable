@@ -159,6 +159,9 @@
   <data name="IAmImmutableAutoPopulatorAnalyserTitle" xml:space="preserve">
     <value>IAmImmutable implementation may be auto-generated</value>
   </data>
+  <data name="IAmImmutableConstructorDoesNotCallValidateMethodMessageFormat" xml:space="preserve">
+    <value>IAmImmutable implementation '{0}' has a constructor that does not call the class' Validate method</value>
+  </data>
   <data name="IAmImmutableFieldsMayNotBePublicAndMutableMessageFormat" xml:space="preserve">
     <value>IAmImmutable implementations may not have non-readonly public fields (such as {0})</value>
   </data>
