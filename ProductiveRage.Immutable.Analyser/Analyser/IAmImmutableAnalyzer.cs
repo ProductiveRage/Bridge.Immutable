@@ -284,20 +284,6 @@ namespace ProductiveRage.Immutable.Analyser
 				propertyAccessor.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.ProtectedKeyword));
 		}
 
-		private static bool HasValidateMethodThatThisClassMustCall(ClassDeclarationSyntax classDeclaration)
-		{
-			if (classDeclaration == null)
-				throw new ArgumentNullException(nameof(classDeclaration));
-
-			// 2018-04-08 DWR: This only checks for a Validate method declared on the current class - if there is one on a type that it is derived from then the responsibility is on that base
-			// type to call it (if that base type doesn't also implement IAmImmutable then this analyser won't be run on it and so it's still possible that the Validate method won't be called
-			// from the base type's constructor but we can't know for sure one way or the other if that other class is defined in an assembly that we don't have access to the source of and so
-			// we can't be 100% sure one way or the other, so let's keep it simple)
-			return classDeclaration.ChildNodes()
-				.OfType<MethodDeclarationSyntax>()
-				.Any(method => (method.Identifier.Text == "Validate") && !method.Modifiers.Any(modifier => modifier.Kind() == SyntaxKind.StaticKeyword) && !method.ParameterList.Parameters.Any());
-		}
-
 		private static bool InvocationIsCtorSetCall(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
 		{
 			if (invocation == null)
@@ -315,6 +301,46 @@ namespace ProductiveRage.Immutable.Analyser
 				(ctorSetMethod.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
 		}
 
+		private static bool HasValidateMethodThatThisClassMustCall(ClassDeclarationSyntax classDeclaration)
+		{
+			if (classDeclaration == null)
+				throw new ArgumentNullException(nameof(classDeclaration));
+
+			return TryToGetValidateMethodThatThisClassMustCall(classDeclaration) != null;
+		}
+
+		public static MethodDeclarationSyntax TryToGetValidateMethodThatThisClassMustCall(ClassDeclarationSyntax classDeclaration)
+		{
+			if (classDeclaration == null)
+				throw new ArgumentNullException(nameof(classDeclaration));
+
+			// 2018-04-08 DWR: This only checks for a Validate method declared on the current class - if there is one on a type that it is derived from then the responsibility is on that base
+			// type to call it (if that base type doesn't also implement IAmImmutable then this analyser won't be run on it and so it's still possible that the Validate method won't be called
+			// from the base type's constructor but we can't know for sure one way or the other if that other class is defined in an assembly that we don't have access to the source of and so
+			// we can't be 100% sure one way or the other, so let's keep it simple)
+			return classDeclaration.ChildNodes()
+				.OfType<MethodDeclarationSyntax>()
+				.FirstOrDefault(method =>
+					(method.Identifier.Text == "Validate") &&
+					!method.ParameterList.Parameters.Any() &&
+					ReturnsVoid(method) &&
+					(method.Arity == 0) &&
+					!method.Modifiers.Any(modifier => modifier.Kind() == SyntaxKind.StaticKeyword)
+				);
+		}
+
+		private static bool ReturnsVoid(MethodDeclarationSyntax method)
+		{
+			if (method == null)
+				throw new ArgumentNullException(nameof(method));
+
+			var predefinedReturnType = method.ReturnType as PredefinedTypeSyntax;
+			if (predefinedReturnType == null)
+				return false;
+
+			return predefinedReturnType.Keyword.Kind() == SyntaxKind.VoidKeyword;
+		}
+
 		private static bool InvocationIsAllowableValidateCall(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
 		{
 			if (invocation == null)
@@ -328,6 +354,8 @@ namespace ProductiveRage.Immutable.Analyser
 			return
 				(validateMethod != null) &&
 				!validateMethod.Parameters.Any() &&
+				(validateMethod.Arity == 0) &&
+				validateMethod.ReturnsVoid &&
 				!CommonAnalyser.HasDisallowedAttribute(validateMethod);
 		}
 

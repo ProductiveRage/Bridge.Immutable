@@ -57,14 +57,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// it can't validate the state of an instance if it's a static method) but the JavaScript doesn't (can't) check this and so, for consistency, we should
 			// not restrict ourselves to only instance methods here.
 			var classDeclaration = constructorDeclaration.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().First();
-			var validateMethodIfDefined = classDeclaration.ChildNodes()
-				.OfType<MethodDeclarationSyntax>()
-				.Where(method =>
-					(method.Identifier.Text == "Validate") &&
-					!method.ParameterList.Parameters.Any() &&
-					(method.Arity == 0)
-				)
-				.FirstOrDefault();
+			var validateMethodIfDefined = IAmImmutableAnalyzer.TryToGetValidateMethodThatThisClassMustCall(classDeclaration);
 
 			// Add the CtorSet calls to the constructor
 			var constructorArgumentNamesThatAppearToBeUsed = constructorDeclaration.Body.DescendantNodes()
@@ -88,7 +81,7 @@ namespace ProductiveRage.Immutable.Analyser
 						var identifier = invocationExpression.Expression as IdentifierNameSyntax;
 						if (identifier == null)
 							return false;
-						return identifier.Identifier.Text == "Validate";
+						return identifier.Identifier.Text == validateMethodIfDefined.Identifier.Text;
 					});
 				if (existingValidateCalls.Any())
 				{
@@ -99,7 +92,7 @@ namespace ProductiveRage.Immutable.Analyser
 					newConstructorBody = newConstructorBody.WithStatements(updatedStatements);
 				}
 				else
-					newConstructorBody = newConstructorBody.AddStatements(GetValidateCall());
+					newConstructorBody = newConstructorBody.AddStatements(GetValidateCall(validateMethodIfDefined.Identifier.Text));
 			}
 			var populatedConstructor = constructorDeclaration.WithBody(newConstructorBody);
 
@@ -189,11 +182,14 @@ namespace ProductiveRage.Immutable.Analyser
 			);
 		}
 
-		private static ExpressionStatementSyntax GetValidateCall()
+		private static ExpressionStatementSyntax GetValidateCall(string name)
 		{
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentException($"Null/blank {nameof(name)} specified");
+
 			return SyntaxFactory.ExpressionStatement(
 				SyntaxFactory.InvocationExpression(
-					SyntaxFactory.IdentifierName("Validate"),
+					SyntaxFactory.IdentifierName(name),
 					SyntaxFactory.ArgumentList()
 				)
 			);

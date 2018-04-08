@@ -499,6 +499,70 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			}
 
 			/// <summary>
+			/// I've seen a pattern where IAmImmutable types have a public Validate method that returns a new instance based on some particular internal logic - this is not a Validate method that should
+			/// be called from a constructor
+			/// </summary>
+			[TestMethod]
+			public void OnlyConsiderValidateMethodThatHasVoidReturnValue()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id, Optional<int> other)
+							{
+								this.CtorSet(_ => _.Id, id);
+								this.CtorSet(_ => _.Other, other);
+							}
+
+							private SomethingWithAnId Validate()
+							{
+								return this;
+							}
+
+							public int Id { get; }
+							public Optional<int> Other { get; }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			/// <summary>
+			/// We need the Validate method to have no parameters and generic type parameters are essentially parameters and so we shouldn't demand that such a Validate method be called from the constructor
+			/// </summary>
+			[TestMethod]
+			public void DoNotConsiderValidateMethodThatHasGenericTypeParamsForCallingFromConstructor()
+			{
+				var testContent = @"
+					using Bridge;
+					using ProductiveRage.Immutable;
+
+					namespace TestCase
+					{
+						public class SomethingWithAnId : IAmImmutable
+						{
+							public SomethingWithAnId(int id, Optional<int> other)
+							{
+								this.CtorSet(_ => _.Id, id);
+								this.CtorSet(_ => _.Other, other);
+							}
+
+							private void Validate<T>() { }
+
+							public int Id { get; }
+							public Optional<int> Other { get; }
+						}
+					}";
+
+				VerifyCSharpDiagnostic(testContent);
+			}
+
+			/// <summary>
 			/// While it looks like it's clearly a mistake to not call Validate in this case, classes that don't implement IAmImmutable are not our concern (and it may well be acceptable
 			/// for them to have a Validate method that isn't called from the constructor), so ensure that we don't interfere in that case
 			/// </summary>
