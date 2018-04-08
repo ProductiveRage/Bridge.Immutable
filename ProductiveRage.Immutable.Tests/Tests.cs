@@ -102,15 +102,6 @@ namespace ProductiveRage.Immutable.Tests
 				assert.Equal(x.Name, "test2");
 			});
 
-			/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
-			QUnit.Test("Simple string property update using With directly where target is [ObjectLiteral]", assert =>
-			{
-				var x = new ObjectLiteralPersonDetails(1, "test");
-				x = x.With(_ => _.Name, "test2");
-				assert.Equal(x.Name, "test2");
-			});
-			*/
-
 			QUnit.Test("Simple string property update using With indirectly", assert =>
 			{
 				var x = new SomethingWithStringId("abc");
@@ -296,23 +287,6 @@ namespace ProductiveRage.Immutable.Tests
 			public int Key { get; }
 			public string Name { get; }
 		}
-
-		/* TODO: Bridge (since 16.0.0-beta) no longer allows [ObjectLiteral] to implement an interface that isn't also [ObjectLiteral]
-		[External]
-		[ObjectLiteral(ObjectCreateMode.Constructor)]
-		public sealed class ObjectLiteralPersonDetails : IAmImmutable
-		{
-			public ObjectLiteralPersonDetails(int key, string name)
-			{
-				this.CtorSet(_ => _.Key, key);
-				this.CtorSet(_ => _.Name, name);
-			}
-			[Name("key")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
-			public int Key { get; }
-			[Name("name")] // TODO: Need to specify this until this is addressed: https://forums.bridge.net/forum/bridge-net-pro/bugs/4203
-			public string Name { get; }
-		}
-		*/
 
 		public interface IAmImmutableAndHaveName : IAmImmutable
 		{
