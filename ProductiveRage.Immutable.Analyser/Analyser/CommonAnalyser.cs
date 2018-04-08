@@ -16,6 +16,7 @@ namespace ProductiveRage.Immutable.Analyser
 			ArgumentSyntax propertyRetrieverArgument,
 			SyntaxNodeAnalysisContext context,
 			ITypeSymbol propertyValueTypeIfKnown,
+			bool allowReadOnlyProperties,
 			out IPropertySymbol propertyIfSuccessfullyRetrieved)
 		{
 			if (propertyRetrieverArgument == null)
@@ -92,8 +93,8 @@ namespace ProductiveRage.Immutable.Analyser
 				// that the code is not in a complete state. We can only identify errors when everything is properly written and consistent.
 				{
 					propertyIfSuccessfullyRetrieved = null;
-				return PropertyValidationResult.UnableToConfirmOrDeny;
-			}
+					return PropertyValidationResult.UnableToConfirmOrDeny;
+				}
 			}
 
 			propertyIfSuccessfullyRetrieved = target as IPropertySymbol;
@@ -104,6 +105,12 @@ namespace ProductiveRage.Immutable.Analyser
 				return PropertyValidationResult.MissingGetter;
 			if (HasDisallowedAttribute(propertyIfSuccessfullyRetrieved.GetMethod))
 				return PropertyValidationResult.GetterHasBridgeAttributes;
+
+			var hasReadOnlyAttribute = propertyIfSuccessfullyRetrieved.GetAttributes().Any(
+				a => a.AttributeClass.ToString() == AnalyserAssemblyName + ".ReadOnlyAttribute"
+			);
+			if (!allowReadOnlyProperties && hasReadOnlyAttribute)
+				return PropertyValidationResult.IsReadOnly;
 
 			// Note about looking for a setter: Previously, it was required that a property have a getter AND a setter, though it was fine for
 			// that setter to be private (in fact, it SHOULD be private if the containing class is not to have modifiable instances). This check
@@ -149,6 +156,7 @@ namespace ProductiveRage.Immutable.Analyser
 			MissingGetter,
 			GetterHasBridgeAttributes,
 			SetterHasBridgeAttributes,
+			IsReadOnly,
 
 			PropertyIsOfMoreSpecificTypeThanSpecificValueType,
 
@@ -174,7 +182,7 @@ namespace ProductiveRage.Immutable.Analyser
 				throw new ArgumentNullException(nameof(classOrInterfaceSymbol));
 
 			return
-				(classOrInterfaceSymbol.ToString() == CommonAnalyser.AnalyserAssemblyName + ".IAmImmutable") ||
+				(classOrInterfaceSymbol.ToString() == AnalyserAssemblyName + ".IAmImmutable") ||
 				((classOrInterfaceSymbol.BaseType != null) && ImplementsIAmImmutable(classOrInterfaceSymbol.BaseType)) ||
 				classOrInterfaceSymbol.Interfaces.Any(i => ImplementsIAmImmutable(i));
 		}
@@ -198,7 +206,7 @@ namespace ProductiveRage.Immutable.Analyser
 			return
 				(typeOfExpression.Name == "PropertyIdentifier") &&
 				(typeOfExpression.ContainingAssembly != null) &&
-				(typeOfExpression.ContainingAssembly.Name == CommonAnalyser.AnalyserAssemblyName);
+				(typeOfExpression.ContainingAssembly.Name == AnalyserAssemblyName);
 		}
 
 		private static bool IsPropertyIdentifierArgument(ExpressionSyntax expression, SyntaxNodeAnalysisContext context, out bool isNotPropertyIdentifierButIsMethodParameterOfDelegateType)

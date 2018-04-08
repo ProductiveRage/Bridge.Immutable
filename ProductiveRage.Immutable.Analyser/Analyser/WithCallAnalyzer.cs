@@ -52,6 +52,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor ReadOnlyPropertyAccessRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.WithAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.ReadOnlyPropertyAccessedMessageFormat)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -61,6 +69,7 @@ namespace ProductiveRage.Immutable.Analyser
 					SimplePropertyAccessorArgumentAccessRule,
 					IndirectTargetAccessorAccessRule,
 					BridgeAttributeAccessRule,
+					ReadOnlyPropertyAccessRule,
 					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
 					MethodParameterWithoutPropertyIdentifierAttributeRule
 				);
@@ -125,7 +134,7 @@ namespace ProductiveRage.Immutable.Analyser
 			// Confirm that the propertyRetriever is a simple lambda (eg. "_ => _.Id")
 			var propertyRetrieverArgument = invocation.ArgumentList.Arguments[indexOfPropertyIdentifierArgument];
 			IPropertySymbol propertyIfSuccessfullyRetrieved;
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown, out propertyIfSuccessfullyRetrieved))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown, allowReadOnlyProperties: false, propertyIfSuccessfullyRetrieved: out propertyIfSuccessfullyRetrieved))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -157,6 +166,13 @@ namespace ProductiveRage.Immutable.Analyser
 				case CommonAnalyser.PropertyValidationResult.SetterHasBridgeAttributes:
 					context.ReportDiagnostic(Diagnostic.Create(
 						BridgeAttributeAccessRule,
+						propertyRetrieverArgument.GetLocation()
+					));
+					return;
+
+				case CommonAnalyser.PropertyValidationResult.IsReadOnly:
+					context.ReportDiagnostic(Diagnostic.Create(
+						ReadOnlyPropertyAccessRule,
 						propertyRetrieverArgument.GetLocation()
 					));
 					return;

@@ -420,6 +420,29 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent);
 		}
 
+		[TestMethod]
+		public void ReadOnlyPropertiesMayBeSetByCtorSet()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public class PersonDetails : IAmImmutable
+					{
+						public PersonDetails(int id, NameDetails name)
+						{
+							this.CtorSet(_ => _.Id, id);
+							this.CtorSet(_ => _.Name, name);
+						}
+						[ReadOnly] public int Id { get; }
+						public NameDetails Name { get; }
+					}
+				}";
+
+			VerifyCSharpDiagnostic(testContent);
+		}
+
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new CtorSetCallAnalyzer();

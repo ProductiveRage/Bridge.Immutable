@@ -70,6 +70,14 @@ namespace ProductiveRage.Immutable.Analyser
 			DiagnosticSeverity.Error,
 			isEnabledByDefault: true
 		);
+		public static DiagnosticDescriptor ReadOnlyPropertyAccessRule = new DiagnosticDescriptor(
+			DiagnosticId,
+			GetLocalizableString(nameof(Resources.PropertyIdentifierAttributeAnalyserTitle)),
+			GetLocalizableString(nameof(Resources.ReadOnlyPropertyAccessedMessageFormat)),
+			Category,
+			DiagnosticSeverity.Error,
+			isEnabledByDefault: true
+		);
 
 		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 		{
@@ -81,6 +89,7 @@ namespace ProductiveRage.Immutable.Analyser
 					SimplePropertyAccessorArgumentAccessRule,
 					IndirectTargetAccessorAccessRule,
 					BridgeAttributeAccessRule,
+					ReadOnlyPropertyAccessRule,
 					PropertyMayNotBeSetToInstanceOfLessSpecificTypeRule,
 					MethodParameterWithoutPropertyIdentifierAttributeRule
 				);
@@ -154,7 +163,7 @@ namespace ProductiveRage.Immutable.Analyser
 				}
 
 				IPropertySymbol propertyIfSuccessfullyRetrieved;
-				switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(argumentValue, context, propertyValueTypeIfKnown: parameterTypeNamedSymbol.DelegateInvokeMethod.ReturnType, propertyIfSuccessfullyRetrieved: out propertyIfSuccessfullyRetrieved))
+				switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(argumentValue, context, propertyValueTypeIfKnown: parameterTypeNamedSymbol.DelegateInvokeMethod.ReturnType, allowReadOnlyProperties: false, propertyIfSuccessfullyRetrieved: out propertyIfSuccessfullyRetrieved))
 				{
 					case CommonAnalyser.PropertyValidationResult.Ok:
 					case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:
@@ -189,6 +198,13 @@ namespace ProductiveRage.Immutable.Analyser
 							argumentValue.GetLocation()
 						));
 						continue;
+
+					case CommonAnalyser.PropertyValidationResult.IsReadOnly:
+						context.ReportDiagnostic(Diagnostic.Create(
+							ReadOnlyPropertyAccessRule,
+							argumentValue.GetLocation()
+						));
+						return;
 
 					case CommonAnalyser.PropertyValidationResult.PropertyIsOfMoreSpecificTypeThanSpecificValueType:
 						context.ReportDiagnostic(Diagnostic.Create(

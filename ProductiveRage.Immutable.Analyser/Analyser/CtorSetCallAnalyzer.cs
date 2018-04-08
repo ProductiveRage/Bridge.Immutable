@@ -161,7 +161,7 @@ namespace ProductiveRage.Immutable.Analyser
 			var propertyValueTypeIfKnown = typeArguments.FirstOrDefault(t => t.Name == "TPropertyValue")?.Type;
 
 			IPropertySymbol propertyIfSuccessfullyRetrieved;
-			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown, out propertyIfSuccessfullyRetrieved))
+			switch (CommonAnalyser.GetPropertyRetrieverArgumentStatus(propertyRetrieverArgument, context, propertyValueTypeIfKnown, allowReadOnlyProperties: true, propertyIfSuccessfullyRetrieved: out propertyIfSuccessfullyRetrieved))
 			{
 				case CommonAnalyser.PropertyValidationResult.Ok:
 				case CommonAnalyser.PropertyValidationResult.UnableToConfirmOrDeny:

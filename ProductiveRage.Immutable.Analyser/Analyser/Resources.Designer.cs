@@ -305,6 +305,15 @@ namespace ProductiveRage.Immutable.Analyser {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Properties annotated with [ReadOnly] may only be targeted by &quot;CtorSet&quot; (not &quot;With&quot; or &quot;GetProperty&quot;and are not elligible as [PropertyIdentifier] values).
+        /// </summary>
+        internal static string ReadOnlyPropertyAccessedMessageFormat {
+            get {
+                return ResourceManager.GetString("ReadOnlyPropertyAccessedMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type &quot;{0}&quot; and so the type of the value that will be used to update the property must be this type or one derived from it (which &quot;{1}&quot; is not).
         /// </summary>
         internal static string TPropertyValueNotSpecificEnough {

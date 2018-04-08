@@ -198,6 +198,9 @@
   <data name="PropertyIdentifierAttributeTargetTypeNotSpecificEnoughMessageFormat" xml:space="preserve">
     <value>The target type of the delegate is not specific enough - the specified property is of type "{0}" and so the delegate return type must be this type or one derived from it (which "{1}" is not)</value>
   </data>
+  <data name="ReadOnlyPropertyAccessedMessageFormat" xml:space="preserve">
+    <value>Properties annotated with [ReadOnly] may only be targeted by "CtorSet" (not "With" or "GetProperty"and are not elligible as [PropertyIdentifier] values)</value>
+  </data>
   <data name="TPropertyValueNotSpecificEnough" xml:space="preserve">
     <value>TPropertyValue is a type that is less specialised than the indicated property - the specified property is of type "{0}" and so the type of the value that will be used to update the property must be this type or one derived from it (which "{1}" is not)</value>
   </data>

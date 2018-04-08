@@ -656,6 +656,43 @@ namespace ProductiveRage.Immutable.Analyser.Test
 			VerifyCSharpDiagnostic(testContent, expected);
 		}
 
+		[TestMethod]
+		public void CanNotSetReadOnlyProperties()
+		{
+			var testContent = @"
+				using ProductiveRage.Immutable;
+
+				namespace TestCase
+				{
+					public static class Program
+					{
+						public static SomethingWithAnId WithId(SomethingWithAnId x, int id)
+						{
+							return x.With(_ => _.Id, id);
+						}
+					}
+
+					public class SomethingWithAnId : IAmImmutable
+					{
+						public SomethingWithAnId(int id) { }
+						[ReadOnly] public int Id { get; }
+					}
+				}";
+
+			var expected = new DiagnosticResult
+			{
+				Id = WithCallAnalyzer.DiagnosticId,
+				Message = WithCallAnalyzer.ReadOnlyPropertyAccessRule.MessageFormat.ToString(),
+				Severity = DiagnosticSeverity.Error,
+				Locations = new[]
+				{
+					new DiagnosticResultLocation("Test0.cs", 10, 22)
+				}
+			};
+
+			VerifyCSharpDiagnostic(testContent, expected);
+		}
+
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new WithCallAnalyzer();
