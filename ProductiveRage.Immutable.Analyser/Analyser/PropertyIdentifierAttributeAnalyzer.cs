@@ -107,7 +107,7 @@ namespace ProductiveRage.Immutable.Analyser
 				if ((delegateType != null) && (delegateType.TypeKind == TypeKind.Delegate) && (delegateType.DelegateInvokeMethod != null))
 					parameters = delegateType.DelegateInvokeMethod.Parameters;
 				else
-					parameters = null;
+					return; // We can't analyse this delegate call if we can't get the parameter data
 			}
 			else
 			{
