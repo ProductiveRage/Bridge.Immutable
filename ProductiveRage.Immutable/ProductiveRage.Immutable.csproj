@@ -26,7 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,7 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\ProductiveRage.Immutable.xml</DocumentationFile>
     <NoWarn>CS1591</NoWarn>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
@@ -45,6 +45,7 @@
     </Compile>
     <Compile Include="ImmutabilityHelpers.cs" />
     <Compile Include="IAmImmutable.cs" />
+    <Compile Include="ObjectLiteralSupportingEquality.cs" />
     <Compile Include="ReadOnlyAttribute.cs" />
     <Compile Include="PropertyIdentifierAttribute.cs" />
     <Compile Include="PropertyIdentifier.cs" />

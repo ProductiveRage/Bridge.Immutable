@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Bridge;
-using Bridge.Html5;
 using Bridge.QUnit;
 using ProductiveRage.SealedClassVerification;
 
@@ -45,6 +44,20 @@ namespace ProductiveRage.Immutable.Tests
 				var x = Optional.For("abc");
 				var updatedX = x.Map(_ => _);
 				assert.StrictEqual(updatedX, x);
+			});
+
+			QUnit.Test("Optional Equality works with type that has with custom Equality override", assert =>
+			{
+				var x0 = Optional.For(new StandardObjectWithCustomEquality("abc"));
+				var x1 = Optional.For(new StandardObjectWithCustomEquality("abc"));
+				assert.Ok(x0.Equals(x1));
+			});
+
+			QUnit.Test("Optional Equality works with type that is [ObjectLiteral] with custom Equality override", assert =>
+			{
+				var x0 = Optional.For(new ObjectLiteralWithCustomEquality("abc"));
+				var x1 = Optional.For(new ObjectLiteralWithCustomEquality("abc"));
+				assert.Ok(x0.Equals(x1));
 			});
 		}
 
@@ -214,6 +227,24 @@ namespace ProductiveRage.Immutable.Tests
 					expected: items
 				);
 			});
+
+			QUnit.Test("NonNullList.Map - items don't change (according to Equals override) and so list returning unaltered", assert =>
+			{
+				var items = NonNullList.Of(new StandardObjectWithCustomEquality("abc"));
+				assert.Equal(
+					actual: items.Map(value => new StandardObjectWithCustomEquality("abc")),
+					expected: items
+				);
+			});
+
+			QUnit.Test("NonNullList.Map - items [ObjectLiteral] don't change (according to Equals override) and so list returning unaltered", assert =>
+			{
+				var items = NonNullList.Of(new ObjectLiteralWithCustomEquality("abc"));
+				assert.Equal(
+					actual: items.Map(value => new ObjectLiteralWithCustomEquality("abc")),
+					expected: items
+				);
+			});
 		}
 
 		private static IEnumerable<int[]> GetPermutations(params int[] values)
@@ -306,6 +337,24 @@ namespace ProductiveRage.Immutable.Tests
 					throw new ArgumentException($"{nameof(Key)} may not be zero");
 			}
 			public uint Key { get; }
+		}
+
+		public sealed class StandardObjectWithCustomEquality
+		{
+			public StandardObjectWithCustomEquality(string value) => Value = value ?? throw new ArgumentNullException(nameof(value));
+			public string Value { get; }
+			public override int GetHashCode() => Value.GetHashCode();
+			public override bool Equals(object o) => (o is StandardObjectWithCustomEquality other) && (other.Value == Value);
+		}
+
+
+		[ObjectLiteral(ObjectCreateMode.Constructor)]
+		public sealed class ObjectLiteralWithCustomEquality
+		{
+			public ObjectLiteralWithCustomEquality(string value) => Value = value ?? throw new ArgumentNullException(nameof(value));
+			public string Value { get; }
+			public override int GetHashCode() => Value.GetHashCode();
+			public override bool Equals(object o) => (o is ObjectLiteralWithCustomEquality other) && (other.Value == Value);
 		}
 	}
 }

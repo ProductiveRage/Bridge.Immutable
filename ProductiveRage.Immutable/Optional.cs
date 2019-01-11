@@ -37,17 +37,14 @@ namespace ProductiveRage.Immutable
 		/// <summary>
 		/// Gets a value indicating whether the value was specified.
 		/// </summary>
-		public bool IsDefined { get; private set; }
+		public bool IsDefined { get; }
 
 		/// <summary>
 		/// Gets the specified value, or the default value for the type if <see cref="IsDefined"/> is <c>false</c>.
 		/// </summary>
-		public T Value { get; private set; }
+		public T Value { get; }
 
-		public T GetValueOrDefault(T defaultValue)
-		{
-			return IsDefined ? Value : defaultValue;
-		}
+		public T GetValueOrDefault(T defaultValue) => IsDefined ? Value : defaultValue;
 
 		/// <summary>
 		/// If this Optional instance has a value then the value will be transformed using the specified mapper. If this instance
@@ -69,7 +66,7 @@ namespace ProductiveRage.Immutable
 				// value - but the behaviour is consistent with .NET). I'm on the fence about removing this micro-optimisation entirely - all that it saves is a new reference to a Bridge representation
 				// of a struct (in Bridge, each struct object is really a regular object instance made to look like a .NET struct whereas .NET structs are inherently different and are not tracked by
 				// the garbage collector and so trying to "reuse" a struct instance in .NET would not make any sense).
-				var newValueEqualsOldValue = (typeof(T) != typeof(DateTime)) && newValue.Equals(Value);
+				var newValueEqualsOldValue = (typeof(T) != typeof(DateTime)) && ObjectLiteralSupportingEquality.AreEqual(newValue, Value);
 				if ((typeof(TResult) == typeof(T)) && newValueEqualsOldValue)
 				{
 					// If the destination type is the same as the current type and the new value is the same as the existing value
@@ -87,27 +84,13 @@ namespace ProductiveRage.Immutable
 		/// <summary>
 		/// Implicitly wraps the specified value as an Optional.
 		/// </summary>
-		public static implicit operator Optional<T>(T value)
-		{
-			return (value == null) ? _missing : new Optional<T>(value);
-		}
+		public static implicit operator Optional<T>(T value)=> (value == null) ? _missing : new Optional<T>(value);
 
-		public static bool operator ==(Optional<T> x, Optional<T> y)
-		{
-			return x.Equals(y);
-		}
+		public static bool operator ==(Optional<T> x, Optional<T> y) => x.Equals(y);
 
-		public static bool operator !=(Optional<T> x, Optional<T> y)
-		{
-			return !(x == y);
-		}
+		public static bool operator !=(Optional<T> x, Optional<T> y) => !(x == y);
 
-		public override bool Equals(object obj)
-		{
-			if (!(obj is Optional<T>))
-				return false;
-			return Equals((Optional<T>)obj);
-		}
+		public override bool Equals(object obj) => (obj is Optional<T> other) && Equals(other);
 
 		public bool Equals(Optional<T> other)
 		{
@@ -115,25 +98,16 @@ namespace ProductiveRage.Immutable
 				return true;
 			else if (!IsDefined || !other.IsDefined)
 				return false;
-			return Value.Equals(other.Value);
+			return ObjectLiteralSupportingEquality.AreEqual(Value, other.Value);
 		}
 
-		public override int GetHashCode()
-		{
-			return IsDefined ? Value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type
-		}
+		public override int GetHashCode() => IsDefined ? Value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type
 
-		public override string ToString()
-		{
-			return IsDefined ? Value.ToString() : "{Missing}";
-		}
+		public override string ToString() => IsDefined ? Value.ToString() : "{Missing}";
 	}
 
 	public static class Optional
 	{
-		public static Optional<T> For<T>(T value)
-		{
-			return value;
-		}
+		public static Optional<T> For<T>(T value) => value;
 	}
 }

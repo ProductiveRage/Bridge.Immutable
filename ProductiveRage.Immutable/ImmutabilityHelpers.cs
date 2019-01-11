@@ -95,7 +95,7 @@ namespace ProductiveRage.Immutable
 
 			// Ensure that the value has actually changed, otherwise return the source reference straight back out
 			var currentValue = propertyIdentifier(source);
-			if (value.Equals(currentValue))
+			if (ObjectLiteralSupportingEquality.AreEqual(value, currentValue))
 				return source;
 
 			var update = Clone(source);
@@ -177,7 +177,7 @@ namespace ProductiveRage.Immutable
 			var newValue = valueUpdater(currentValue);
 			if (newValue == null)
 				throw new Exception("The specified valueUpdater returned null, which is invalid (if this is a property that may sometimes not have a value then it should be of type Optional)");
-			if (newValue.Equals(currentValue))
+			if (ObjectLiteralSupportingEquality.AreEqual(newValue, currentValue))
 				return source;
 
 			var update = Clone(source);
@@ -263,7 +263,7 @@ namespace ProductiveRage.Immutable
 
 			// If the new value is the same as the current value then no change is required (the With and SetValue calls below would work this out but they would have to do
 			// a little bit of work to come to the same conclusion - we may as well drop out now)
-			if (updatedValue.Equals(currentValue))
+			if (ObjectLiteralSupportingEquality.AreEqual(updatedValue, currentValue))
 				return source;
 
 			return source.With(
@@ -297,7 +297,7 @@ namespace ProductiveRage.Immutable
 
 				// Ensure that the value has actually changed, otherwise return the source reference straight back out
 				var currentValue = propertyIdentifier(source);
-				if (value.Equals(currentValue))
+				if (ObjectLiteralSupportingEquality.AreEqual(value, currentValue))
 					return source;
 
 				var update = Clone(source);
@@ -348,7 +348,7 @@ namespace ProductiveRage.Immutable
 				// Ensure that the value has actually changed, otherwise return the source reference straight back out (the Set class has a condition
 				// that ensures that the original Set instance is returned if the new value is the same as the existing value at the specified index)
 				var newValue = currentValue.SetValue(index, value);
-				if (newValue.Equals(currentValue))
+				if (ObjectLiteralSupportingEquality.AreEqual(newValue, currentValue))
 					return source;
 
 				var update = Clone(source);
