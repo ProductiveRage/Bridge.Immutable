@@ -55,8 +55,10 @@ namespace ProductiveRage.Immutable.Tests
 
 			QUnit.Test("Optional Equality works with type that is [ObjectLiteral] with custom Equality override", assert =>
 			{
-				var x0 = Optional.For(new ObjectLiteralWithCustomEquality("abc"));
-				var x1 = Optional.For(new ObjectLiteralWithCustomEquality("abc"));
+				// Use NonBlankTrimmedString from ProductiveRage.Immutable.Extensions because that is an [ObjectLiteral] with a custom Equals method and referencing
+				// that assembly pulls through the [ObjectLiteral] hacks that are required until the Bridge Team (hopefully) improve the support for them
+				var x0 = Optional.For(new NonBlankTrimmedString("abc"));
+				var x1 = Optional.For(new NonBlankTrimmedString("abc"));
 				assert.Ok(x0.Equals(x1));
 			});
 		}
@@ -239,9 +241,11 @@ namespace ProductiveRage.Immutable.Tests
 
 			QUnit.Test("NonNullList.Map - items [ObjectLiteral] don't change (according to Equals override) and so list returning unaltered", assert =>
 			{
-				var items = NonNullList.Of(new ObjectLiteralWithCustomEquality("abc"));
+				// Use NonBlankTrimmedString from ProductiveRage.Immutable.Extensions because that is an [ObjectLiteral] with a custom Equals method and referencing
+				// that assembly pulls through the [ObjectLiteral] hacks that are required until the Bridge Team (hopefully) improve the support for them
+				var items = NonNullList.Of(new NonBlankTrimmedString("abc"));
 				assert.Equal(
-					actual: items.Map(value => new ObjectLiteralWithCustomEquality("abc")),
+					actual: items.Map(value => new NonBlankTrimmedString("abc")),
 					expected: items
 				);
 			});
@@ -345,16 +349,6 @@ namespace ProductiveRage.Immutable.Tests
 			public string Value { get; }
 			public override int GetHashCode() => Value.GetHashCode();
 			public override bool Equals(object o) => (o is StandardObjectWithCustomEquality other) && (other.Value == Value);
-		}
-
-
-		[ObjectLiteral(ObjectCreateMode.Constructor)]
-		public sealed class ObjectLiteralWithCustomEquality
-		{
-			public ObjectLiteralWithCustomEquality(string value) => Value = value ?? throw new ArgumentNullException(nameof(value));
-			public string Value { get; }
-			public override int GetHashCode() => Value.GetHashCode();
-			public override bool Equals(object o) => (o is ObjectLiteralWithCustomEquality other) && (other.Value == Value);
 		}
 	}
 }

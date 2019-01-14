@@ -130,7 +130,7 @@ namespace ProductiveRage.Immutable
 				valuesBeforeUpdate[i] = node.Item;
 				node = node.NextIfAny;
 			}
-			if (ObjectLiteralSupportingEquality.AreEqual(node.Item,  value))
+			if (node.Item.Equals(value))
 				return this; // If the new value is the same as the current then return this instance unaltered
 			var nodeAfterUpdate = node.NextIfAny;
 			var newNode = new Node
@@ -226,7 +226,7 @@ namespace ProductiveRage.Immutable
 					var newValue = updater(currentValue);
 					if (newValue == null)
 						throw new ArgumentException("updated returned a null reference - this is not acceptable, Set<T> will not record nulls");
-					var isNewValueTheSameAsCurrentValue = ObjectLiteralSupportingEquality.AreEqual(newValue, currentValue);
+					var isNewValueTheSameAsCurrentValue = newValue.Equals(currentValue);
 					if ((earliestUnchangedValueAndIndex == null) && isNewValueTheSameAsCurrentValue)
 						earliestUnchangedValueAndIndex = Tuple.Create(node, i);
 					else if (!isNewValueTheSameAsCurrentValue)

@@ -66,7 +66,7 @@ namespace ProductiveRage.Immutable
 				// value - but the behaviour is consistent with .NET). I'm on the fence about removing this micro-optimisation entirely - all that it saves is a new reference to a Bridge representation
 				// of a struct (in Bridge, each struct object is really a regular object instance made to look like a .NET struct whereas .NET structs are inherently different and are not tracked by
 				// the garbage collector and so trying to "reuse" a struct instance in .NET would not make any sense).
-				var newValueEqualsOldValue = (typeof(T) != typeof(DateTime)) && ObjectLiteralSupportingEquality.AreEqual(newValue, Value);
+				var newValueEqualsOldValue = (typeof(T) != typeof(DateTime)) && newValue.Equals(Value);
 				if ((typeof(TResult) == typeof(T)) && newValueEqualsOldValue)
 				{
 					// If the destination type is the same as the current type and the new value is the same as the existing value
@@ -98,7 +98,7 @@ namespace ProductiveRage.Immutable
 				return true;
 			else if (!IsDefined || !other.IsDefined)
 				return false;
-			return ObjectLiteralSupportingEquality.AreEqual(Value, other.Value);
+			return Value.Equals(other.Value);
 		}
 
 		public override int GetHashCode() => IsDefined ? Value.GetHashCode() : 0; // Choose zero for no-value to be consistent with the framework Nullable type

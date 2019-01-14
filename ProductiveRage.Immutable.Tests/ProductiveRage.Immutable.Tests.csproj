@@ -60,12 +60,19 @@
       <HintPath>..\packages\Bridge.QUnit.1.8.4\lib\net40\Bridge.QUnit.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Bridge.React, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bridge.React.4.2.0\lib\net40\Bridge.React.dll</HintPath>
+    </Reference>
+    <Reference Include="ProductiveRage.Immutable.Extensions, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ProductiveRage.Immutable.Extensions.4.2.0\lib\net40\ProductiveRage.Immutable.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="ProductiveRage.SealedClassVerification, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ProductiveRage.SealedClassVerification.Bridge.1.7.0\lib\net40\ProductiveRage.SealedClassVerification.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Analyzer Include="..\packages\Bridge.React.4.2.0\analyzers\dotnet\cs\Bridge.React.Analyser.dll" />
     <Analyzer Include="..\packages\ProductiveRage.SealedClassVerification.Bridge.1.7.0\analyzers\dotnet\cs\ProductiveRage.SealedClassVerification.Analyser.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

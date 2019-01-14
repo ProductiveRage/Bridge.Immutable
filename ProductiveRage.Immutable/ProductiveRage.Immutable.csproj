@@ -45,7 +45,6 @@
     </Compile>
     <Compile Include="ImmutabilityHelpers.cs" />
     <Compile Include="IAmImmutable.cs" />
-    <Compile Include="ObjectLiteralSupportingEquality.cs" />
     <Compile Include="ReadOnlyAttribute.cs" />
     <Compile Include="PropertyIdentifierAttribute.cs" />
     <Compile Include="PropertyIdentifier.cs" />
