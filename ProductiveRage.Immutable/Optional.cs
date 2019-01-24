@@ -90,7 +90,19 @@ namespace ProductiveRage.Immutable
 
 		public static bool operator !=(Optional<T> x, Optional<T> y) => !(x == y);
 
-		public override bool Equals(object obj) => (obj is Optional<T> other) && Equals(other);
+		public override bool Equals(object obj)
+		{
+			// 2019-01-24: The Bridge compiler will try to include the call to the implicit operator when comparing an Optional<T> to a T when it knows at compile
+			// time that this is required.. however, there are compatibility issues with [ObjectLiteral] that mean that this will not always be the case, such as
+			// when this method is called from the FixObjectLiteralEqualsHack code in ProductiveRage.Immutable.Extensions - that means that "obj" may be an instance
+			// of T and we want to be able to make the comparison, even though obj is a T and not a T that was implicitly cast to an Optional<T>. That's what there
+			// are two check-type-and-compare checks below.
+			if (obj is Optional<T>)
+				return Equals((Optional<T>)obj);
+			if (obj is T)
+				return Equals(Optional.For((T)obj));
+			return false;
+		}
 
 		public bool Equals(Optional<T> other)
 		{
