@@ -81,12 +81,14 @@ namespace ProductiveRage.Immutable.Tests
 
 			QUnit.Test("CtorSet may not be called outside of the constructor (only works if CtorSet is set consistently within the constructor)", assert =>
 			{
+#pragma warning disable CtorSet // CtorSet should only be used in specific circumstances - suppress this, we're testing the runtime error handling
 				var x = new SomethingWithStringId("abc");
 				assert.Throws(
 					() => x.CtorSet(_ => _.Id, "abc"),
 					"CtorSet should throw if called outside of the constructor (since it should only be called once per property and the constructor should call it for all properties)"
 				);
 			});
+#pragma warning restore CtorSet // CtorSet should only be used in specific circumstances
 		}
 
 		private static void WithTests()
